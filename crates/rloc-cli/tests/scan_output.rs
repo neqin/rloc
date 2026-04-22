@@ -407,6 +407,30 @@ fn scan_counts_shell_files_as_supported_inputs() {
 }
 
 #[test]
+fn scan_counts_sql_files_as_supported_inputs() {
+    let root = temp_workspace("scan_counts_sql_files_as_supported_inputs");
+    write_file(&root, "src/lib.rs", "fn main() {}\n");
+    write_file(&root, "db/schema.sql", "-- schema note\nselect 1;\n");
+    write_file(&root, "db/query.psql", "select '-- note' as note;\n");
+
+    let output = run_scan(&root, &["--format", "json", "--group-by", "language"]);
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(json["summary"]["files"], 3);
+    assert!(json["warnings"].as_array().unwrap().is_empty());
+    assert!(
+        json["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|group| group["group_by"] == "language" && group["key"] == "sql")
+    );
+
+    cleanup_workspace(&root);
+}
+
+#[test]
 fn scan_lists_unsupported_paths_when_requested() {
     let root = temp_workspace("scan_lists_unsupported_paths_when_requested");
     write_file(&root, "src/lib.rs", "fn main() {}\n");

@@ -9,6 +9,7 @@ members = [
   "crates/rloc-lang-python",
   "crates/rloc-lang-js",
   "crates/rloc-lang-shell",
+  "crates/rloc-lang-sql",
 ]
 
 [workspace.package]
