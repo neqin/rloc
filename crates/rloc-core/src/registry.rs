@@ -240,7 +240,11 @@ mod tests {
                 &["sh", "bash", "zsh"],
                 &[".bashrc", ".zshrc", ".envrc"],
             ))
-            .with_descriptor(LanguageDescriptor::new(Language::Sql, "SQL", &["sql", "psql"]))
+            .with_descriptor(LanguageDescriptor::new(
+                Language::Sql,
+                "SQL",
+                &["sql", "psql"],
+            ))
             .with_descriptor(LanguageDescriptor::new(Language::Go, "Go", &["go"]))
             .with_descriptor(LanguageDescriptor::new(
                 Language::Html,

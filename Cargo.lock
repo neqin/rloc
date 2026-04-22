@@ -384,11 +384,13 @@ dependencies = [
  "clap",
  "rloc-config",
  "rloc-core",
+ "rloc-lang-go",
  "rloc-lang-js",
  "rloc-lang-python",
  "rloc-lang-rust",
  "rloc-lang-shell",
  "rloc-lang-sql",
+ "rloc-lang-web",
  "rloc-report",
  "serde_json",
  "thiserror",
@@ -417,6 +419,13 @@ dependencies = [
  "rayon",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "rloc-lang-go"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
 ]
 
 [[package]]
@@ -456,6 +465,13 @@ dependencies = [
 
 [[package]]
 name = "rloc-lang-sql"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
+]
+
+[[package]]
+name = "rloc-lang-web"
 version = "0.1.0"
 dependencies = [
  "rloc-core",

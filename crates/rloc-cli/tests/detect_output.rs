@@ -28,6 +28,27 @@ fn detect_lists_unsupported_paths_when_requested() {
     cleanup_workspace(&root);
 }
 
+#[test]
+fn detect_reports_go_preset_for_go_mod_and_go_files() {
+    let root = temp_workspace("detect_reports_go_preset_for_go_mod_and_go_files");
+    write_file(&root, "go.mod", "module demo\n");
+    write_file(&root, "cmd/main.go", "package main\nfunc main() {}\n");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+        .args(["detect", root.as_str()])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert!(output.status.success());
+    assert!(stdout.contains("languages:"));
+    assert!(stdout.contains("- go"));
+    assert!(stdout.contains("presets:"));
+    assert!(stdout.contains("- go"));
+
+    cleanup_workspace(&root);
+}
+
 fn temp_workspace(test_name: &str) -> Utf8PathBuf {
     let unique = format!(
         "rloc-cli-{test_name}-{}-{}",

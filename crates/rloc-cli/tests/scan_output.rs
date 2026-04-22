@@ -386,8 +386,16 @@ fn scan_counts_markdown_and_config_files_as_supported_inputs() {
 fn scan_counts_shell_files_as_supported_inputs() {
     let root = temp_workspace("scan_counts_shell_files_as_supported_inputs");
     write_file(&root, "src/lib.rs", "fn main() {}\n");
-    write_file(&root, "scripts/build.sh", "#!/usr/bin/env bash\necho hello\n");
-    write_file(&root, "scripts/profile.zsh", "export PATH=\"$PATH:$HOME/bin\"\n# note\n");
+    write_file(
+        &root,
+        "scripts/build.sh",
+        "#!/usr/bin/env bash\necho hello\n",
+    );
+    write_file(
+        &root,
+        "scripts/profile.zsh",
+        "export PATH=\"$PATH:$HOME/bin\"\n# note\n",
+    );
 
     let output = run_scan(&root, &["--format", "json", "--group-by", "language"]);
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
@@ -425,6 +433,61 @@ fn scan_counts_sql_files_as_supported_inputs() {
             .unwrap()
             .iter()
             .any(|group| group["group_by"] == "language" && group["key"] == "sql")
+    );
+
+    cleanup_workspace(&root);
+}
+
+#[test]
+fn scan_counts_go_files_as_supported_inputs() {
+    let root = temp_workspace("scan_counts_go_files_as_supported_inputs");
+    write_file(&root, "src/lib.rs", "fn main() {}\n");
+    write_file(&root, "cmd/main.go", "package main\nfunc main() {}\n");
+
+    let output = run_scan(&root, &["--format", "json", "--group-by", "language"]);
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(json["summary"]["files"], 2);
+    assert!(json["warnings"].as_array().unwrap().is_empty());
+    assert!(
+        json["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|group| group["group_by"] == "language" && group["key"] == "go")
+    );
+
+    cleanup_workspace(&root);
+}
+
+#[test]
+fn scan_counts_html_and_css_files_as_supported_inputs() {
+    let root = temp_workspace("scan_counts_html_and_css_files_as_supported_inputs");
+    write_file(&root, "src/lib.rs", "fn main() {}\n");
+    write_file(&root, "web/index.html", "<main>Hello</main>\n");
+    write_file(&root, "web/page.gohtml", "<section>Template</section>\n");
+    write_file(&root, "web/app.css", "body { color: red; }\n");
+
+    let output = run_scan(&root, &["--format", "json", "--group-by", "language"]);
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(json["summary"]["files"], 4);
+    assert!(json["warnings"].as_array().unwrap().is_empty());
+    assert!(
+        json["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|group| group["group_by"] == "language" && group["key"] == "html")
+    );
+    assert!(
+        json["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|group| group["group_by"] == "language" && group["key"] == "css")
     );
 
     cleanup_workspace(&root);

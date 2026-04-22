@@ -16,8 +16,11 @@ pub(crate) fn default_registry() -> LanguageBackendRegistry {
         .with_backend(rloc_lang_js::typescript_backend())
         .with_backend(rloc_lang_js::jsx_backend())
         .with_backend(rloc_lang_js::tsx_backend())
+        .with_backend(rloc_lang_go::backend())
         .with_backend(rloc_lang_shell::backend())
         .with_backend(rloc_lang_sql::backend())
+        .with_backend(rloc_lang_web::html_backend())
+        .with_backend(rloc_lang_web::css_backend())
         .with_backend(rloc_core::markdown_backend())
         .with_backend(rloc_core::config_backend())
 }
@@ -40,7 +43,10 @@ mod tests {
     fn default_registry_wires_all_workspace_backends() {
         let languages = default_registry().supported_languages();
 
-        assert_eq!(languages.len(), 10);
+        assert_eq!(languages.len(), 13);
+        assert!(languages.contains(&Language::Go));
+        assert!(languages.contains(&Language::Html));
+        assert!(languages.contains(&Language::Css));
         assert!(languages.contains(&Language::Shell));
         assert!(languages.contains(&Language::Sql));
         assert!(languages.contains(&Language::Rust));

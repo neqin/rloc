@@ -5,6 +5,7 @@ use rloc_core::Language;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Preset {
+    Go,
     Rust,
     Python,
     React,
@@ -14,6 +15,7 @@ pub enum Preset {
 impl Preset {
     pub const fn as_str(self) -> &'static str {
         match self {
+            Self::Go => "go",
             Self::Rust => "rust",
             Self::Python => "python",
             Self::React => "react",
@@ -31,6 +33,9 @@ impl fmt::Display for Preset {
 pub fn detect_presets(root: &Utf8Path, languages: &[Language]) -> Vec<Preset> {
     let mut presets = Vec::new();
 
+    if root.join("go.mod").exists() || has_language(languages, Language::Go) {
+        presets.push(Preset::Go);
+    }
     if root.join("Cargo.toml").exists() || has_language(languages, Language::Rust) {
         presets.push(Preset::Rust);
     }
@@ -93,12 +98,22 @@ mod tests {
         )
         .unwrap();
         fs::write(root.join("package.json").as_std_path(), "{}\n").unwrap();
+        fs::write(root.join("go.mod").as_std_path(), "module demo\n").unwrap();
         fs::create_dir_all(root.join("packages").as_std_path()).unwrap();
 
-        let presets = detect_presets(&root, &[Language::Rust, Language::Python, Language::Tsx]);
+        let presets = detect_presets(
+            &root,
+            &[
+                Language::Go,
+                Language::Rust,
+                Language::Python,
+                Language::Tsx,
+            ],
+        );
         assert_eq!(
             presets,
             vec![
+                Preset::Go,
                 Preset::Rust,
                 Preset::Python,
                 Preset::React,
@@ -116,6 +131,17 @@ mod tests {
 
         let presets = detect_presets(&root, &[Language::JavaScript, Language::TypeScript]);
         assert!(presets.is_empty());
+
+        cleanup(&root);
+    }
+
+    #[test]
+    fn detects_go_without_go_mod_when_go_sources_are_present() {
+        let root = temp_dir("detects_go_without_go_mod_when_go_sources_are_present");
+
+        let presets = detect_presets(&root, &[Language::Go]);
+
+        assert_eq!(presets, vec![Preset::Go]);
 
         cleanup(&root);
     }

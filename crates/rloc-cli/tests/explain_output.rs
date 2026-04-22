@@ -233,6 +233,64 @@ fn explain_supports_psql_files() {
     cleanup_workspace(&root);
 }
 
+#[test]
+fn explain_supports_go_sources() {
+    let root = temp_workspace("explain_supports_go_sources");
+    write_file(
+        &root,
+        "main.go",
+        concat!("package main\n", "func main() {}\n",),
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+        .args(["explain", "main.go", "--format", "json"])
+        .current_dir(root.as_std_path())
+        .output()
+        .unwrap();
+
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(json["language"], "go");
+    assert_eq!(json["category"], "source");
+    assert_eq!(json["metrics"]["code_lines"], 2);
+
+    cleanup_workspace(&root);
+}
+
+#[test]
+fn explain_supports_html_and_css_sources() {
+    let root = temp_workspace("explain_supports_html_and_css_sources");
+    write_file(&root, "index.html", "<main>Hello</main>\n");
+    write_file(&root, "app.css", "body { color: red; }\n");
+
+    let html_output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+        .args(["explain", "index.html", "--format", "json"])
+        .current_dir(root.as_std_path())
+        .output()
+        .unwrap();
+    let html_json: Value = serde_json::from_slice(&html_output.stdout).unwrap();
+
+    assert!(html_output.status.success());
+    assert_eq!(html_json["language"], "html");
+    assert_eq!(html_json["category"], "source");
+    assert_eq!(html_json["metrics"]["code_lines"], 1);
+
+    let css_output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+        .args(["explain", "app.css", "--format", "json"])
+        .current_dir(root.as_std_path())
+        .output()
+        .unwrap();
+    let css_json: Value = serde_json::from_slice(&css_output.stdout).unwrap();
+
+    assert!(css_output.status.success());
+    assert_eq!(css_json["language"], "css");
+    assert_eq!(css_json["category"], "source");
+    assert_eq!(css_json["metrics"]["code_lines"], 1);
+
+    cleanup_workspace(&root);
+}
+
 fn temp_workspace(test_name: &str) -> Utf8PathBuf {
     let unique = format!(
         "rloc-cli-{test_name}-{}-{}",

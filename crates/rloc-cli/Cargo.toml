@@ -25,3 +25,5 @@ rloc-lang-python = { path = "../rloc-lang-python" }
 rloc-lang-js = { path = "../rloc-lang-js" }
 rloc-lang-shell = { path = "../rloc-lang-shell" }
 rloc-lang-sql = { path = "../rloc-lang-sql" }
+rloc-lang-go = { path = "../rloc-lang-go" }
+rloc-lang-web = { path = "../rloc-lang-web" }
