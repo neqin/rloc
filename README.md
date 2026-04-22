@@ -103,6 +103,10 @@ Create a default `.rloc.toml` in the current directory:
 cargo run -p rloc-cli -- config init
 ```
 
+Example scan output:
+
+![Example `rloc scan` output](docs/images/scan-output.png)
+
 ## Commands
 
 ### `rloc [SCAN_OPTIONS] [PATH]`

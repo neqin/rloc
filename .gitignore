@@ -6,6 +6,8 @@
 .vscode/
 .codex
 /docs/*
+!/docs/images/
+!/docs/images/*
 !/docs/plans/
 /docs/plans/*
 !/docs/plans/2026-04-22-wave1-language-expansion.md
