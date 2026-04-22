@@ -46,6 +46,24 @@ After that, the binary is available at:
 target/debug/rloc
 ```
 
+Build an optimized release binary:
+
+```bash
+cargo build --release -p rloc-cli
+```
+
+After that, the release binary is available at:
+
+```bash
+target/release/rloc
+```
+
+To install it into your local user bin directory:
+
+```bash
+install -Dm755 target/release/rloc ~/.local/bin/rloc
+```
+
 For one-off runs during development, you can also use:
 
 ```bash
