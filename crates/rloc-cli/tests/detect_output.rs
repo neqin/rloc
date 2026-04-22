@@ -49,6 +49,37 @@ fn detect_reports_go_preset_for_go_mod_and_go_files() {
     cleanup_workspace(&root);
 }
 
+#[test]
+fn detect_lists_wave1_languages_in_human_output() {
+    let root = temp_workspace("detect_lists_wave1_languages_in_human_output");
+    write_file(
+        &root,
+        "scripts/build.sh",
+        "#!/usr/bin/env bash\necho hello\n",
+    );
+    write_file(&root, "db/schema.sql", "select 1;\n");
+    write_file(&root, "cmd/main.go", "package main\nfunc main() {}\n");
+    write_file(&root, "web/index.html", "<main>Hello</main>\n");
+    write_file(&root, "web/app.css", "body { color: red; }\n");
+    write_file(&root, "go.mod", "module demo\n");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+        .args(["detect", root.as_str()])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert!(output.status.success());
+    assert!(stdout.contains("languages:"));
+    for language in ["- shell", "- sql", "- go", "- html", "- css"] {
+        assert!(stdout.contains(language));
+    }
+    assert!(stdout.contains("presets:"));
+    assert!(stdout.contains("- go"));
+
+    cleanup_workspace(&root);
+}
+
 fn temp_workspace(test_name: &str) -> Utf8PathBuf {
     let unique = format!(
         "rloc-cli-{test_name}-{}-{}",

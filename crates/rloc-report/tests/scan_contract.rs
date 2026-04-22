@@ -307,6 +307,49 @@ fn json_output_uses_canonical_js_family_language_names() {
         .any(|entry| entry["path"] == "frontend/legacy.js" && entry["language"] == "javascript"));
 }
 
+#[test]
+fn json_output_uses_canonical_wave1_language_names() {
+    let report = sample_report_with_wave1_languages();
+    let options = ScanRenderOptions {
+        path: "repo".into(),
+        format: "json".to_owned(),
+        group_by: vec![ScanGroupBy::Language],
+        top_files: Some(5),
+        top_dirs: None,
+        respect_gitignore: true,
+        include_generated: true,
+        include_vendor: false,
+        include_tests: true,
+    };
+
+    let rendered = render_json_with_options(&report, &options).unwrap();
+    let json: Value = serde_json::from_str(&rendered).unwrap();
+
+    let groups = json["groups"].as_array().unwrap();
+    for language in ["shell", "sql", "go", "html", "css"] {
+        assert!(
+            groups
+                .iter()
+                .any(|group| group["group_by"] == "language" && group["key"] == language)
+        );
+    }
+
+    let top_files = json["top_files"].as_array().unwrap();
+    for (path, language) in [
+        ("scripts/build.sh", "shell"),
+        ("db/query.sql", "sql"),
+        ("cmd/main.go", "go"),
+        ("web/index.html", "html"),
+        ("web/app.css", "css"),
+    ] {
+        assert!(
+            top_files
+                .iter()
+                .any(|entry| entry["path"] == path && entry["language"] == language)
+        );
+    }
+}
+
 fn sample_report() -> ScanReport {
     let files = vec![
         FileMetrics::from_line_breakdown(
@@ -546,6 +589,101 @@ fn sample_report_with_js_family_languages() -> ScanReport {
 
     let mut by_language = BTreeMap::new();
     for language in [Language::JavaScript, Language::TypeScript] {
+        let matching = files
+            .iter()
+            .filter(|file| file.language == language)
+            .cloned()
+            .collect::<Vec<_>>();
+        if !matching.is_empty() {
+            by_language.insert(language, MetricsSummary::from_files(&matching));
+        }
+    }
+
+    ScanReport {
+        summary: MetricsSummary::from_files(&files),
+        files,
+        by_language,
+        warnings: Vec::new(),
+    }
+}
+
+fn sample_report_with_wave1_languages() -> ScanReport {
+    let files = vec![
+        FileMetrics::from_line_breakdown(
+            "scripts/build.sh".into(),
+            Language::Shell,
+            FileCategory::Script,
+            40,
+            4,
+            0,
+            3,
+            1,
+            0,
+            0,
+            0,
+        ),
+        FileMetrics::from_line_breakdown(
+            "db/query.sql".into(),
+            Language::Sql,
+            FileCategory::Source,
+            48,
+            4,
+            0,
+            3,
+            1,
+            0,
+            0,
+            0,
+        ),
+        FileMetrics::from_line_breakdown(
+            "cmd/main.go".into(),
+            Language::Go,
+            FileCategory::Source,
+            60,
+            6,
+            0,
+            6,
+            0,
+            0,
+            0,
+            0,
+        ),
+        FileMetrics::from_line_breakdown(
+            "web/index.html".into(),
+            Language::Html,
+            FileCategory::Source,
+            36,
+            3,
+            0,
+            2,
+            1,
+            0,
+            0,
+            0,
+        ),
+        FileMetrics::from_line_breakdown(
+            "web/app.css".into(),
+            Language::Css,
+            FileCategory::Source,
+            32,
+            2,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+        ),
+    ];
+
+    let mut by_language = BTreeMap::new();
+    for language in [
+        Language::Shell,
+        Language::Sql,
+        Language::Go,
+        Language::Html,
+        Language::Css,
+    ] {
         let matching = files
             .iter()
             .filter(|file| file.language == language)

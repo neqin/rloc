@@ -494,6 +494,38 @@ fn scan_counts_html_and_css_files_as_supported_inputs() {
 }
 
 #[test]
+fn scan_wave1_languages_no_longer_show_as_unsupported() {
+    let root = temp_workspace("scan_wave1_languages_no_longer_show_as_unsupported");
+    write_file(
+        &root,
+        "scripts/build.sh",
+        "#!/usr/bin/env bash\necho hello\n",
+    );
+    write_file(&root, "db/schema.sql", "select 1;\n");
+    write_file(&root, "cmd/main.go", "package main\nfunc main() {}\n");
+    write_file(&root, "web/index.html", "<main>Hello</main>\n");
+    write_file(&root, "web/app.css", "body { color: red; }\n");
+
+    let output = run_scan(&root, &["--format", "json", "--group-by", "language"]);
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(json["summary"]["files"], 5);
+    assert!(json["warnings"].as_array().unwrap().is_empty());
+
+    let groups = json["groups"].as_array().unwrap();
+    for language in ["shell", "sql", "go", "html", "css"] {
+        assert!(
+            groups
+                .iter()
+                .any(|group| group["group_by"] == "language" && group["key"] == language)
+        );
+    }
+
+    cleanup_workspace(&root);
+}
+
+#[test]
 fn scan_lists_unsupported_paths_when_requested() {
     let root = temp_workspace("scan_lists_unsupported_paths_when_requested");
     write_file(&root, "src/lib.rs", "fn main() {}\n");

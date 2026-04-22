@@ -291,6 +291,36 @@ fn explain_supports_html_and_css_sources() {
     cleanup_workspace(&root);
 }
 
+#[test]
+fn explain_json_uses_canonical_wave1_language_names() {
+    let root = temp_workspace("explain_json_uses_canonical_wave1_language_names");
+    write_file(&root, "scripts/build.sh", "echo hello\n");
+    write_file(&root, "query.psql", "select 1;\n");
+    write_file(&root, "main.go", "package main\nfunc main() {}\n");
+    write_file(&root, "index.html", "<main>Hello</main>\n");
+    write_file(&root, "app.css", "body { color: red; }\n");
+
+    for (path, expected) in [
+        ("scripts/build.sh", "shell"),
+        ("query.psql", "sql"),
+        ("main.go", "go"),
+        ("index.html", "html"),
+        ("app.css", "css"),
+    ] {
+        let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+            .args(["explain", path, "--format", "json"])
+            .current_dir(root.as_std_path())
+            .output()
+            .unwrap();
+        let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+        assert!(output.status.success());
+        assert_eq!(json["language"], expected);
+    }
+
+    cleanup_workspace(&root);
+}
+
 fn temp_workspace(test_name: &str) -> Utf8PathBuf {
     let unique = format!(
         "rloc-cli-{test_name}-{}-{}",

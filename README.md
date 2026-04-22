@@ -3,6 +3,11 @@
 `rloc` is a Rust CLI for analyzing repositories and reporting line-of-code metrics with language and file-category awareness.
 
 Current workspace support includes:
+- Shell (`sh`, `bash`, `zsh`, `.bashrc`, `.zshrc`, `.envrc`)
+- SQL (`sql`, `psql`)
+- Go
+- HTML (`html`, `htm`, `xhtml`, `gohtml`)
+- CSS
 - Rust
 - Python
 - JavaScript
@@ -65,6 +70,7 @@ Explain classification for a single file:
 
 ```bash
 cargo run -p rloc-cli -- explain crates/rloc-cli/src/main.rs
+cargo run -p rloc-cli -- explain scripts/build.sh --format json
 ```
 
 Print the effective configuration:
@@ -101,8 +107,8 @@ rloc scan . --group-by language --group-by category
 rloc scan . --top-files 10 --top-dirs 5
 rloc scan . --no-top-files --no-top-dirs
 rloc scan . --list-unsupported
-rloc scan . --languages rust,python,typescript
-rloc scan . --languages rs,py,js,ts,tsx
+rloc scan . --languages rust,python,go,html,css
+rloc scan . --languages rs,py,js,ts,tsx,sh,sql
 rloc --exclude **/target/**,**/dist/** .
 rloc scan . --no-tests --no-vendor
 rloc scan . --generated
@@ -118,7 +124,7 @@ Available options:
 - `--top-dirs [N]` — override the default top-dir limit; defaults to `10` when passed without a value
 - `--no-top-dirs` — hide the top-dirs section entirely
 - `--list-unsupported [N]` — list up to `N` example skipped unsupported files; defaults to `5` when passed without a value
-- `--languages <LIST>` — comma-separated language list; aliases: `rs`, `py`, `js`, `ts`, `md`, `cfg`
+- `--languages <LIST>` — comma-separated language list; aliases: `rs`, `py`, `js`, `ts`, `md`, `cfg`, `sh`; canonical names include `shell`, `sql`, `go`, `html`, `css`
 - `--exclude <LIST>` — comma-separated exclude globs; may be passed multiple times and are appended to config excludes
 - `--no-tests`
 - `--generated` — include generated files
@@ -144,8 +150,11 @@ Example:
 
 ```bash
 rloc detect .
+rloc detect ./services/api
 rloc detect . --list-unsupported
 ```
+
+If `go.mod` is present or Go files are detected, `detect` also reports the `go` preset.
 
 Available options:
 
@@ -161,6 +170,7 @@ Examples:
 
 ```bash
 rloc explain src/lib.rs
+rloc explain scripts/build.sh --format json
 rloc explain crates/rloc-cli/src/main.rs --format json
 rloc explain crates/rloc-cli/src/main.rs --format json --config .rloc.toml
 ```
@@ -264,6 +274,10 @@ crates/
   rloc-core/
   rloc-config/
   rloc-report/
+  rloc-lang-shell/
+  rloc-lang-sql/
+  rloc-lang-go/
+  rloc-lang-web/
   rloc-lang-rust/
   rloc-lang-python/
   rloc-lang-js/
