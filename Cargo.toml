@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/rloc-cli",
+  "crates/rloc-core",
+  "crates/rloc-config",
+  "crates/rloc-report",
+  "crates/rloc-lang-rust",
+  "crates/rloc-lang-python",
+  "crates/rloc-lang-js",
+]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+version = "0.1.0"
+rust-version = "1.86"
+
+[workspace.dependencies]
+anyhow = "1"
+camino = { version = "1", features = ["serde1"] }
+clap = { version = "4", features = ["derive"] }
+globset = "0.4"
+ignore = "0.4"
+rayon = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+tree-sitter = "0.24"
+tree-sitter-rust = "0.23"
+tree-sitter-python = "0.23"
+tree-sitter-javascript = "0.23"
+tree-sitter-typescript = "0.23"

@@ -1,0 +1,8 @@
+/target
+**/target
+.rloc-cache/
+.DS_Store
+.idea/
+.vscode/
+.codex
+/docs

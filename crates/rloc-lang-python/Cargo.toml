@@ -1,0 +1,11 @@
+[package]
+name = "rloc-lang-python"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+rloc-core = { path = "../rloc-core" }
+tree-sitter.workspace = true
+tree-sitter-python.workspace = true

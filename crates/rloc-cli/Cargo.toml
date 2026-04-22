@@ -1,0 +1,25 @@
+[package]
+name = "rloc-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "rloc"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+camino.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+thiserror.workspace = true
+rloc-core = { path = "../rloc-core" }
+rloc-config = { path = "../rloc-config" }
+rloc-report = { path = "../rloc-report" }
+rloc-lang-rust = { path = "../rloc-lang-rust" }
+rloc-lang-python = { path = "../rloc-lang-python" }
+rloc-lang-js = { path = "../rloc-lang-js" }
