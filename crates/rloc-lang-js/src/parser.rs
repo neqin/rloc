@@ -10,7 +10,12 @@ pub fn parser_name(language: Language) -> &'static str {
         Language::JavaScript | Language::Jsx => JAVASCRIPT_PARSER,
         Language::TypeScript => TYPESCRIPT_PARSER,
         Language::Tsx => TSX_PARSER,
-        Language::Rust
+        Language::Css
+        | Language::Go
+        | Language::Html
+        | Language::Rust
+        | Language::Shell
+        | Language::Sql
         | Language::Python
         | Language::Markdown
         | Language::Config
@@ -39,7 +44,12 @@ pub fn parse(language: Language, source: &str) -> Result<Option<Tree>, String> {
                 .set_language(&grammar.into())
                 .map_err(|error| format!("failed to load {TSX_PARSER}: {error}"))?;
         }
-        Language::Rust
+        Language::Css
+        | Language::Go
+        | Language::Html
+        | Language::Rust
+        | Language::Shell
+        | Language::Sql
         | Language::Python
         | Language::Markdown
         | Language::Config

@@ -9,6 +9,7 @@ pub struct LanguageDescriptor {
     pub language: Language,
     pub display_name: &'static str,
     pub extensions: &'static [&'static str],
+    pub file_names: &'static [&'static str],
 }
 
 impl LanguageDescriptor {
@@ -17,10 +18,20 @@ impl LanguageDescriptor {
         display_name: &'static str,
         extensions: &'static [&'static str],
     ) -> Self {
+        Self::with_file_names(language, display_name, extensions, &[])
+    }
+
+    pub const fn with_file_names(
+        language: Language,
+        display_name: &'static str,
+        extensions: &'static [&'static str],
+        file_names: &'static [&'static str],
+    ) -> Self {
         Self {
             language,
             display_name,
             extensions,
+            file_names,
         }
     }
 }
@@ -29,6 +40,7 @@ impl LanguageDescriptor {
 pub struct LanguageBackendRegistry {
     descriptors: Vec<LanguageDescriptor>,
     by_extension: HashMap<&'static str, Language>,
+    by_file_name: HashMap<&'static str, Language>,
     backends: HashMap<Language, Arc<dyn LanguageBackend>>,
 }
 
@@ -88,10 +100,16 @@ impl LanguageBackendRegistry {
             for extension in previous.extensions {
                 self.by_extension.remove(extension);
             }
+            for file_name in previous.file_names {
+                self.by_file_name.remove(file_name);
+            }
         }
 
         for extension in descriptor.extensions {
             self.by_extension.insert(*extension, descriptor.language);
+        }
+        for file_name in descriptor.file_names {
+            self.by_file_name.insert(*file_name, descriptor.language);
         }
 
         self.descriptors.push(descriptor);
@@ -115,6 +133,13 @@ impl LanguageBackendRegistry {
     }
 
     pub fn detect_language(&self, path: &Utf8Path) -> Language {
+        if let Some(language) = path
+            .file_name()
+            .and_then(|file_name| self.by_file_name.get(file_name).copied())
+        {
+            return language;
+        }
+
         path.extension()
             .and_then(|extension| self.by_extension.get(extension).copied())
             .unwrap_or(Language::Unknown)
@@ -207,6 +232,82 @@ mod tests {
     }
 
     #[test]
+    fn registry_detects_shell_dotfiles_and_wave1_extensions() {
+        let registry = LanguageBackendRegistry::new()
+            .with_descriptor(LanguageDescriptor::with_file_names(
+                Language::Shell,
+                "Shell",
+                &["sh", "bash", "zsh"],
+                &[".bashrc", ".zshrc", ".envrc"],
+            ))
+            .with_descriptor(LanguageDescriptor::new(Language::Sql, "SQL", &["sql", "psql"]))
+            .with_descriptor(LanguageDescriptor::new(Language::Go, "Go", &["go"]))
+            .with_descriptor(LanguageDescriptor::new(
+                Language::Html,
+                "HTML",
+                &["html", "htm", "xhtml", "gohtml"],
+            ))
+            .with_descriptor(LanguageDescriptor::new(Language::Css, "CSS", &["css"]));
+
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("scripts/build.sh")),
+            Language::Shell
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("scripts/build.bash")),
+            Language::Shell
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("scripts/build.zsh")),
+            Language::Shell
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new(".bashrc")),
+            Language::Shell
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new(".zshrc")),
+            Language::Shell
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new(".envrc")),
+            Language::Shell
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("db/query.sql")),
+            Language::Sql
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("db/query.psql")),
+            Language::Sql
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("cmd/main.go")),
+            Language::Go
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("web/index.html")),
+            Language::Html
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("web/index.htm")),
+            Language::Html
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("web/layout.xhtml")),
+            Language::Html
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("web/page.gohtml")),
+            Language::Html
+        );
+        assert_eq!(
+            registry.detect_language(Utf8Path::new("web/app.css")),
+            Language::Css
+        );
+    }
+
+    #[test]
     fn supported_languages_follow_registered_descriptors() {
         let registry = LanguageBackendRegistry::new()
             .with_descriptor(LanguageDescriptor::new(Language::Rust, "Rust", &["rs"]))
@@ -214,11 +315,29 @@ mod tests {
                 Language::TypeScript,
                 "TypeScript",
                 &["ts"],
-            ));
+            ))
+            .with_descriptor(LanguageDescriptor::with_file_names(
+                Language::Shell,
+                "Shell",
+                &["sh"],
+                &[".bashrc"],
+            ))
+            .with_descriptor(LanguageDescriptor::new(Language::Sql, "SQL", &["sql"]))
+            .with_descriptor(LanguageDescriptor::new(Language::Go, "Go", &["go"]))
+            .with_descriptor(LanguageDescriptor::new(Language::Html, "HTML", &["html"]))
+            .with_descriptor(LanguageDescriptor::new(Language::Css, "CSS", &["css"]));
 
         assert_eq!(
             registry.supported_languages(),
-            vec![Language::Rust, Language::TypeScript]
+            vec![
+                Language::Css,
+                Language::Go,
+                Language::Html,
+                Language::Rust,
+                Language::Shell,
+                Language::Sql,
+                Language::TypeScript,
+            ]
         );
     }
 

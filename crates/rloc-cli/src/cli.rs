@@ -106,7 +106,7 @@ pub struct ScanArgs {
     )]
     pub list_unsupported: Option<usize>,
 
-    /// Comma-separated language list; aliases: rs, py, js, ts, md, cfg.
+    /// Comma-separated language list; aliases: rs, py, js, ts, md, cfg, sh; names: sql, go, html, css.
     #[arg(long = "languages", value_delimiter = ',')]
     pub languages: Vec<LanguageArg>,
 
@@ -189,6 +189,12 @@ pub enum GroupBy {
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum LanguageArg {
+    #[value(alias("sh"))]
+    Shell,
+    Sql,
+    Go,
+    Html,
+    Css,
     #[value(alias("rs"))]
     Rust,
     #[value(alias("py"))]
@@ -208,6 +214,11 @@ pub enum LanguageArg {
 impl From<LanguageArg> for rloc_core::Language {
     fn from(value: LanguageArg) -> Self {
         match value {
+            LanguageArg::Shell => Self::Shell,
+            LanguageArg::Sql => Self::Sql,
+            LanguageArg::Go => Self::Go,
+            LanguageArg::Html => Self::Html,
+            LanguageArg::Css => Self::Css,
             LanguageArg::Rust => Self::Rust,
             LanguageArg::Python => Self::Python,
             LanguageArg::Javascript => Self::JavaScript,
@@ -276,17 +287,28 @@ mod tests {
 
     #[test]
     fn parses_scan_language_aliases() {
-        let cli =
-            Cli::try_parse_from(["rloc", "scan", ".", "--languages", "js,ts,md,cfg,tsx"]).unwrap();
+        let cli = Cli::try_parse_from([
+            "rloc",
+            "scan",
+            ".",
+            "--languages",
+            "js,ts,md,cfg,tsx,sh,sql,go,html,css",
+        ])
+        .unwrap();
 
         match cli.command {
             Command::Scan(args) => {
-                assert_eq!(args.languages.len(), 5);
+                assert_eq!(args.languages.len(), 10);
                 assert!(matches!(args.languages[0], super::LanguageArg::Javascript));
                 assert!(matches!(args.languages[1], super::LanguageArg::Typescript));
                 assert!(matches!(args.languages[2], super::LanguageArg::Markdown));
                 assert!(matches!(args.languages[3], super::LanguageArg::Config));
                 assert!(matches!(args.languages[4], super::LanguageArg::Tsx));
+                assert!(matches!(args.languages[5], super::LanguageArg::Shell));
+                assert!(matches!(args.languages[6], super::LanguageArg::Sql));
+                assert!(matches!(args.languages[7], super::LanguageArg::Go));
+                assert!(matches!(args.languages[8], super::LanguageArg::Html));
+                assert!(matches!(args.languages[9], super::LanguageArg::Css));
             }
             other => panic!("expected scan command, got {other:?}"),
         }
@@ -403,7 +425,11 @@ mod tests {
         let scan = command.find_subcommand_mut("scan").unwrap();
         let help = scan.render_long_help().to_string();
 
-        assert!(help.contains("aliases: rs, py, js, ts"));
+        assert!(help.contains("aliases: rs, py, js, ts, md, cfg, sh"));
+        assert!(help.contains("sql"));
+        assert!(help.contains("go"));
+        assert!(help.contains("html"));
+        assert!(help.contains("css"));
     }
 
     #[test]

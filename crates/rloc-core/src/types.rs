@@ -7,7 +7,12 @@ use crate::{Utf8Path, metrics::FileMetrics, registry::LanguageDescriptor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Language {
+    Css,
+    Go,
+    Html,
     Rust,
+    Shell,
+    Sql,
     Python,
     JavaScript,
     TypeScript,
@@ -21,7 +26,12 @@ pub enum Language {
 impl Language {
     pub const fn as_str(self) -> &'static str {
         match self {
+            Self::Css => "css",
+            Self::Go => "go",
+            Self::Html => "html",
             Self::Rust => "rust",
+            Self::Shell => "shell",
+            Self::Sql => "sql",
             Self::Python => "python",
             Self::JavaScript => "javascript",
             Self::TypeScript => "typescript",
