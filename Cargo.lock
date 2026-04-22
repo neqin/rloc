@@ -387,6 +387,8 @@ dependencies = [
  "rloc-lang-js",
  "rloc-lang-python",
  "rloc-lang-rust",
+ "rloc-lang-shell",
+ "rloc-lang-sql",
  "rloc-report",
  "serde_json",
  "thiserror",
@@ -443,6 +445,20 @@ dependencies = [
  "rloc-core",
  "tree-sitter",
  "tree-sitter-rust",
+]
+
+[[package]]
+name = "rloc-lang-shell"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
+]
+
+[[package]]
+name = "rloc-lang-sql"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
 ]
 
 [[package]]
