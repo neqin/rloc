@@ -8,8 +8,11 @@ pub mod classify;
 #[derive(Debug, Clone, Copy, Default)]
 pub struct SqlBackend;
 
-pub const DESCRIPTORS: [LanguageDescriptor; 1] =
-    [LanguageDescriptor::new(Language::Sql, "SQL", &["sql", "psql"])];
+pub const DESCRIPTORS: [LanguageDescriptor; 1] = [LanguageDescriptor::new(
+    Language::Sql,
+    "SQL",
+    &["sql", "psql"],
+)];
 
 impl LanguageBackend for SqlBackend {
     fn descriptor(&self) -> LanguageDescriptor {

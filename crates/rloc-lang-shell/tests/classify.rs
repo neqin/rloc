@@ -3,9 +3,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use rloc_core::{
-    BackendFileAnalysis, ClassificationOptions, FileCategory, Utf8Path, Utf8PathBuf,
-};
+use rloc_core::{BackendFileAnalysis, ClassificationOptions, FileCategory, Utf8Path, Utf8PathBuf};
 
 #[test]
 fn shebang_is_counted_as_code() {
@@ -47,6 +45,25 @@ fn hash_inside_quotes_does_not_start_a_comment() {
     assert_eq!(analysis.metrics.comment_lines, 0);
     assert_eq!(analysis.metrics.mixed_lines, 0);
     assert_eq!(line_kind(&analysis, 1), "code");
+}
+
+#[test]
+fn heredoc_bodies_are_not_classified_as_comments() {
+    let analysis = classify(
+        "heredoc_bodies_are_not_classified_as_comments",
+        "script.sh",
+        concat!(
+            "cat <<'EOF'\n",
+            "# not a comment\n",
+            "value=true\n",
+            "EOF\n",
+        ),
+    );
+
+    assert_eq!(analysis.metrics.code_lines, 4);
+    assert_eq!(analysis.metrics.comment_lines, 0);
+    assert_eq!(analysis.metrics.mixed_lines, 0);
+    assert_eq!(line_kind(&analysis, 2), "code");
 }
 
 fn classify(test_name: &str, relative_path: &str, contents: &str) -> BackendFileAnalysis {

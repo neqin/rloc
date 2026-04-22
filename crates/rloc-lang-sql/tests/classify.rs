@@ -3,9 +3,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use rloc_core::{
-    BackendFileAnalysis, ClassificationOptions, FileCategory, Utf8Path, Utf8PathBuf,
-};
+use rloc_core::{BackendFileAnalysis, ClassificationOptions, FileCategory, Utf8Path, Utf8PathBuf};
 
 #[test]
 fn double_dash_comments_are_comment_or_mixed_lines() {
@@ -42,6 +40,23 @@ fn comment_markers_inside_strings_do_not_start_comments() {
         concat!(
             "select '-- not comment' as note;\n",
             "select \"/* not comment */\" as ident;\n",
+        ),
+    );
+
+    assert_eq!(analysis.metrics.code_lines, 2);
+    assert_eq!(analysis.metrics.comment_lines, 0);
+    assert_eq!(analysis.metrics.mixed_lines, 0);
+    assert_eq!(line_kind(&analysis, 1), "code");
+}
+
+#[test]
+fn dollar_quoted_strings_ignore_comment_markers() {
+    let analysis = classify(
+        "dollar_quoted_strings_ignore_comment_markers",
+        "query.psql",
+        concat!(
+            "select $$-- not a comment$$;\n",
+            "select $tag$/* still not comment */$tag$;\n",
         ),
     );
 

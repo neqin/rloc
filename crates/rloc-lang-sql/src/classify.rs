@@ -13,6 +13,15 @@ enum LineKind {
     Mixed,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ScannerState {
+    Code,
+    SingleQuote,
+    DoubleQuote,
+    DollarQuote(Vec<u8>),
+    BlockComment,
+}
+
 pub fn classify_file(
     path: &Utf8Path,
     category: FileCategory,
@@ -25,11 +34,10 @@ pub fn classify_file(
     let mut comment_lines = 0_u32;
     let mut mixed_lines = 0_u32;
     let mut line_explanations = Vec::new();
-    let mut in_block_comment = false;
+    let mut state = ScannerState::Code;
 
     for (index, line) in contents.lines().enumerate() {
-        let (raw_kind, next_in_block_comment) = classify_line(line, in_block_comment);
-        in_block_comment = next_in_block_comment;
+        let raw_kind = classify_line(line, &mut state);
         let kind = normalize_kind(raw_kind, options);
         match kind {
             LineKind::Blank => blank_lines += 1,
@@ -76,94 +84,149 @@ fn normalize_kind(kind: LineKind, options: &ClassificationOptions) -> LineKind {
     }
 }
 
-fn classify_line(line: &str, in_block_comment: bool) -> (LineKind, bool) {
-    if line.trim().is_empty() && !in_block_comment {
-        return (LineKind::Blank, false);
+fn classify_line(line: &str, state: &mut ScannerState) -> LineKind {
+    if line.trim().is_empty() && matches!(state, ScannerState::Code) {
+        return LineKind::Blank;
     }
 
+    let mut has_code = carried_code(state);
+    let mut has_comment = carried_comment(state);
     let bytes = line.as_bytes();
-    let mut has_code = false;
-    let mut has_comment = in_block_comment;
-    let mut block_comment = in_block_comment;
     let mut index = 0;
 
     while index < bytes.len() {
-        if block_comment {
-            has_comment = true;
-            if starts_with(bytes, index, b"*/") {
-                block_comment = false;
-                index += 2;
-            } else {
+        match state {
+            ScannerState::Code => {
+                if bytes[index].is_ascii_whitespace() {
+                    index += 1;
+                    continue;
+                }
+
+                if starts_with(bytes, index, b"--") {
+                    has_comment = true;
+                    break;
+                }
+
+                if starts_with(bytes, index, b"/*") {
+                    has_comment = true;
+                    *state = ScannerState::BlockComment;
+                    index += 2;
+                    continue;
+                }
+
+                if let Some(delimiter) = match_dollar_quote_start(bytes, index) {
+                    has_code = true;
+                    index += delimiter.len();
+                    *state = ScannerState::DollarQuote(delimiter);
+                    continue;
+                }
+
+                if bytes[index] == b'\'' {
+                    has_code = true;
+                    *state = ScannerState::SingleQuote;
+                    index += 1;
+                    continue;
+                }
+
+                if bytes[index] == b'"' {
+                    has_code = true;
+                    *state = ScannerState::DoubleQuote;
+                    index += 1;
+                    continue;
+                }
+
+                has_code = true;
                 index += 1;
             }
-            continue;
+            ScannerState::SingleQuote => {
+                has_code = true;
+                if bytes[index] == b'\'' {
+                    if bytes.get(index + 1) == Some(&b'\'') {
+                        index += 2;
+                    } else {
+                        *state = ScannerState::Code;
+                        index += 1;
+                    }
+                } else {
+                    index += 1;
+                }
+            }
+            ScannerState::DoubleQuote => {
+                has_code = true;
+                if bytes[index] == b'"' {
+                    if bytes.get(index + 1) == Some(&b'"') {
+                        index += 2;
+                    } else {
+                        *state = ScannerState::Code;
+                        index += 1;
+                    }
+                } else {
+                    index += 1;
+                }
+            }
+            ScannerState::DollarQuote(delimiter) => {
+                has_code = true;
+                if starts_with(bytes, index, delimiter) {
+                    index += delimiter.len();
+                    *state = ScannerState::Code;
+                } else {
+                    index += 1;
+                }
+            }
+            ScannerState::BlockComment => {
+                has_comment = true;
+                if starts_with(bytes, index, b"*/") {
+                    *state = ScannerState::Code;
+                    index += 2;
+                } else {
+                    index += 1;
+                }
+            }
         }
-
-        if bytes[index].is_ascii_whitespace() {
-            index += 1;
-            continue;
-        }
-
-        if starts_with(bytes, index, b"--") {
-            has_comment = true;
-            break;
-        }
-
-        if starts_with(bytes, index, b"/*") {
-            has_comment = true;
-            block_comment = true;
-            index += 2;
-            continue;
-        }
-
-        if bytes[index] == b'\'' {
-            has_code = true;
-            index = skip_quoted(bytes, index, b'\'');
-            continue;
-        }
-
-        if bytes[index] == b'"' {
-            has_code = true;
-            index = skip_quoted(bytes, index, b'"');
-            continue;
-        }
-
-        has_code = true;
-        index += 1;
     }
 
-    let kind = match (has_code, has_comment) {
+    match (has_code, has_comment) {
         (false, false) => LineKind::Blank,
         (true, false) => LineKind::Code,
         (false, true) => LineKind::Comment,
         (true, true) => LineKind::Mixed,
-    };
-
-    (kind, block_comment)
-}
-
-fn skip_quoted(bytes: &[u8], mut index: usize, quote: u8) -> usize {
-    index += 1;
-
-    while index < bytes.len() {
-        if bytes[index] == quote {
-            if bytes.get(index + 1) == Some(&quote) {
-                index += 2;
-                continue;
-            }
-            index += 1;
-            break;
-        }
-        index += 1;
     }
-
-    index
 }
 
 fn starts_with(bytes: &[u8], index: usize, needle: &[u8]) -> bool {
     bytes
         .get(index..index + needle.len())
         .is_some_and(|window| window == needle)
+}
+
+fn match_dollar_quote_start(bytes: &[u8], index: usize) -> Option<Vec<u8>> {
+    if bytes.get(index) != Some(&b'$') {
+        return None;
+    }
+
+    let mut cursor = index + 1;
+    while let Some(&byte) = bytes.get(cursor) {
+        if byte == b'$' {
+            return Some(bytes[index..=cursor].to_vec());
+        }
+        if !(byte.is_ascii_alphanumeric() || byte == b'_') {
+            return None;
+        }
+        cursor += 1;
+    }
+
+    None
+}
+
+fn carried_code(state: &ScannerState) -> bool {
+    matches!(
+        state,
+        ScannerState::SingleQuote | ScannerState::DoubleQuote | ScannerState::DollarQuote(_)
+    )
+}
+
+fn carried_comment(state: &ScannerState) -> bool {
+    matches!(state, ScannerState::BlockComment)
 }
 
 fn line_kind_name(kind: LineKind) -> &'static str {

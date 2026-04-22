@@ -13,6 +13,12 @@ enum LineKind {
     Mixed,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct HereDocState {
+    delimiter: String,
+    strip_tabs: bool,
+}
+
 pub fn classify_file(
     path: &Utf8Path,
     category: FileCategory,
@@ -25,9 +31,10 @@ pub fn classify_file(
     let mut comment_lines = 0_u32;
     let mut mixed_lines = 0_u32;
     let mut line_explanations = Vec::new();
+    let mut heredoc = None;
 
     for (index, line) in contents.lines().enumerate() {
-        let raw_kind = classify_line(line);
+        let raw_kind = classify_line(line, &mut heredoc);
         let kind = normalize_kind(raw_kind, options);
         match kind {
             LineKind::Blank => blank_lines += 1,
@@ -74,7 +81,18 @@ fn normalize_kind(kind: LineKind, options: &ClassificationOptions) -> LineKind {
     }
 }
 
-fn classify_line(line: &str) -> LineKind {
+fn classify_line(line: &str, heredoc: &mut Option<HereDocState>) -> LineKind {
+    if let Some(state) = heredoc.clone() {
+        if is_heredoc_terminator(line, &state) {
+            *heredoc = None;
+        }
+        return if line.trim().is_empty() {
+            LineKind::Blank
+        } else {
+            LineKind::Code
+        };
+    }
+
     if line.trim().is_empty() {
         return LineKind::Blank;
     }
@@ -86,6 +104,7 @@ fn classify_line(line: &str) -> LineKind {
     let mut in_double = false;
     let mut double_escaped = false;
     let mut index = 0;
+    let mut next_heredoc = None;
 
     while index < bytes.len() {
         let byte = bytes[index];
@@ -117,6 +136,14 @@ fn classify_line(line: &str) -> LineKind {
         }
 
         match byte {
+            b'<' => {
+                if let Some((state, next_index)) = match_heredoc_start(bytes, index) {
+                    has_code = true;
+                    next_heredoc = Some(state);
+                    index = next_index;
+                    continue;
+                }
+            }
             b'#' if is_shebang(bytes, index) => {
                 has_code = true;
                 break;
@@ -143,6 +170,8 @@ fn classify_line(line: &str) -> LineKind {
         index += 1;
     }
 
+    *heredoc = next_heredoc;
+
     match (has_code, has_comment) {
         (false, false) => LineKind::Blank,
         (true, true) => LineKind::Mixed,
@@ -161,6 +190,89 @@ fn starts_comment(bytes: &[u8], index: usize) -> bool {
     }
 
     matches!(bytes[index - 1], b' ' | b'\t' | b';')
+}
+
+fn match_heredoc_start(bytes: &[u8], index: usize) -> Option<(HereDocState, usize)> {
+    if !starts_with(bytes, index, b"<<") {
+        return None;
+    }
+
+    let mut cursor = index + 2;
+    let strip_tabs = if bytes.get(cursor) == Some(&b'-') {
+        cursor += 1;
+        true
+    } else {
+        false
+    };
+
+    while matches!(bytes.get(cursor), Some(b' ' | b'\t')) {
+        cursor += 1;
+    }
+
+    let Some(&first) = bytes.get(cursor) else {
+        return None;
+    };
+
+    let (delimiter, next_index) = match first {
+        b'\'' | b'"' => {
+            let quote = first;
+            cursor += 1;
+            let start = cursor;
+            while let Some(&byte) = bytes.get(cursor) {
+                if byte == quote {
+                    let delimiter = String::from_utf8(bytes[start..cursor].to_vec()).ok()?;
+                    return Some((
+                        HereDocState {
+                            delimiter,
+                            strip_tabs,
+                        },
+                        cursor + 1,
+                    ));
+                }
+                cursor += 1;
+            }
+            return None;
+        }
+        _ => {
+            let start = cursor;
+            while let Some(&byte) = bytes.get(cursor) {
+                if byte.is_ascii_whitespace() || matches!(byte, b';' | b'|' | b'&' | b'#') {
+                    break;
+                }
+                cursor += 1;
+            }
+            let delimiter = String::from_utf8(bytes[start..cursor].to_vec()).ok()?;
+            (delimiter, cursor)
+        }
+    };
+
+    if delimiter.is_empty() {
+        return None;
+    }
+
+    Some((
+        HereDocState {
+            delimiter,
+            strip_tabs,
+        },
+        next_index,
+    ))
+}
+
+fn is_heredoc_terminator(line: &str, state: &HereDocState) -> bool {
+    let candidate = if state.strip_tabs {
+        line.trim_start_matches('\t')
+    } else {
+        line
+    };
+
+    candidate.trim_end() == state.delimiter
+}
+
+fn starts_with(bytes: &[u8], index: usize, needle: &[u8]) -> bool {
+    bytes
+        .get(index..index + needle.len())
+        .is_some_and(|window| window == needle)
 }
 
 fn line_kind_name(kind: LineKind) -> &'static str {
