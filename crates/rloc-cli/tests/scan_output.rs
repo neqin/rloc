@@ -383,6 +383,30 @@ fn scan_counts_markdown_and_config_files_as_supported_inputs() {
 }
 
 #[test]
+fn scan_counts_shell_files_as_supported_inputs() {
+    let root = temp_workspace("scan_counts_shell_files_as_supported_inputs");
+    write_file(&root, "src/lib.rs", "fn main() {}\n");
+    write_file(&root, "scripts/build.sh", "#!/usr/bin/env bash\necho hello\n");
+    write_file(&root, "scripts/profile.zsh", "export PATH=\"$PATH:$HOME/bin\"\n# note\n");
+
+    let output = run_scan(&root, &["--format", "json", "--group-by", "language"]);
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(json["summary"]["files"], 3);
+    assert!(json["warnings"].as_array().unwrap().is_empty());
+    assert!(
+        json["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|group| group["group_by"] == "language" && group["key"] == "shell")
+    );
+
+    cleanup_workspace(&root);
+}
+
+#[test]
 fn scan_lists_unsupported_paths_when_requested() {
     let root = temp_workspace("scan_lists_unsupported_paths_when_requested");
     write_file(&root, "src/lib.rs", "fn main() {}\n");

@@ -181,6 +181,32 @@ fn explain_respects_custom_category_patterns_from_config() {
     cleanup_workspace(&root);
 }
 
+#[test]
+fn explain_supports_shell_dotfiles() {
+    let root = temp_workspace("explain_supports_shell_dotfiles");
+    write_file(
+        &root,
+        ".bashrc",
+        concat!("export PATH=\"$PATH:$HOME/bin\"\n", "# shell note\n",),
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+        .args(["explain", ".bashrc", "--format", "json"])
+        .current_dir(root.as_std_path())
+        .output()
+        .unwrap();
+
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(json["language"], "shell");
+    assert_eq!(json["category"], "source");
+    assert_eq!(json["metrics"]["code_lines"], 1);
+    assert_eq!(json["metrics"]["comment_lines"], 1);
+
+    cleanup_workspace(&root);
+}
+
 fn temp_workspace(test_name: &str) -> Utf8PathBuf {
     let unique = format!(
         "rloc-cli-{test_name}-{}-{}",

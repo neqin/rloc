@@ -8,6 +8,7 @@ members = [
   "crates/rloc-lang-rust",
   "crates/rloc-lang-python",
   "crates/rloc-lang-js",
+  "crates/rloc-lang-shell",
 ]
 
 [workspace.package]

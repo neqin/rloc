@@ -23,3 +23,4 @@ rloc-report = { path = "../rloc-report" }
 rloc-lang-rust = { path = "../rloc-lang-rust" }
 rloc-lang-python = { path = "../rloc-lang-python" }
 rloc-lang-js = { path = "../rloc-lang-js" }
+rloc-lang-shell = { path = "../rloc-lang-shell" }
