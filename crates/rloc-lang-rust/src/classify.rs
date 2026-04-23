@@ -1,8 +1,8 @@
 use std::fs;
 
 use rloc_core::{
-    BackendFileAnalysis, ClassificationOptions, FileCategory, FileMetrics, LineExplanation,
-    Utf8Path,
+    BackendFileAnalysis, ClassificationOptions, FileCategory, FileMetrics, LineBreakdown,
+    LineExplanation, Utf8Path,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,13 +73,15 @@ pub fn classify_file(
             rloc_core::Language::Rust,
             category,
             bytes.len() as u64,
-            total_lines,
-            blank_lines,
-            code_lines,
-            comment_lines,
-            doc_lines,
-            mixed_lines,
-            0,
+            LineBreakdown {
+                total: total_lines,
+                blank: blank_lines,
+                code: code_lines,
+                comment: comment_lines,
+                doc: doc_lines,
+                mixed: mixed_lines,
+                ..LineBreakdown::default()
+            },
         ),
         line_explanations,
         warnings: Vec::new(),

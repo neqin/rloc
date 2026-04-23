@@ -153,7 +153,7 @@ mod tests {
     use super::{LanguageBackendRegistry, LanguageDescriptor};
     use crate::{
         BackendFileAnalysis, ClassificationOptions, FileCategory, FileMetrics, Language,
-        LanguageBackend, LineExplanation,
+        LanguageBackend, LineBreakdown, LineExplanation,
     };
 
     #[derive(Debug, Clone, Copy)]
@@ -176,13 +176,11 @@ mod tests {
                     Language::Rust,
                     category,
                     1,
-                    1,
-                    0,
-                    1,
-                    0,
-                    0,
-                    0,
-                    0,
+                    LineBreakdown {
+                        total: 1,
+                        code: 1,
+                        ..LineBreakdown::default()
+                    },
                 ),
                 line_explanations: vec![LineExplanation {
                     line_number: 1,

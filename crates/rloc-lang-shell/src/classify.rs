@@ -1,7 +1,7 @@
 use std::fs;
 
 use rloc_core::{
-    BackendFileAnalysis, ClassificationOptions, FileCategory, FileMetrics, Language,
+    BackendFileAnalysis, ClassificationOptions, FileCategory, FileMetrics, Language, LineBreakdown,
     LineExplanation, Utf8Path,
 };
 
@@ -61,13 +61,14 @@ pub fn classify_file(
             Language::Shell,
             category,
             bytes.len() as u64,
-            total_lines,
-            blank_lines,
-            code_lines,
-            comment_lines,
-            0,
-            mixed_lines,
-            0,
+            LineBreakdown {
+                total: total_lines,
+                blank: blank_lines,
+                code: code_lines,
+                comment: comment_lines,
+                mixed: mixed_lines,
+                ..LineBreakdown::default()
+            },
         ),
         line_explanations,
         warnings: Vec::new(),
@@ -209,9 +210,7 @@ fn match_heredoc_start(bytes: &[u8], index: usize) -> Option<(HereDocState, usiz
         cursor += 1;
     }
 
-    let Some(&first) = bytes.get(cursor) else {
-        return None;
-    };
+    let &first = bytes.get(cursor)?;
 
     let (delimiter, next_index) = match first {
         b'\'' | b'"' => {

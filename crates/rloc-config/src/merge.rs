@@ -24,21 +24,22 @@ pub struct ReportOverrides {
 }
 
 pub fn scan_options_from_config(config: &ConfigFile) -> ScanOptions {
-    let mut options = ScanOptions::default();
-    options.hidden = config.scan.hidden;
-    options.respect_gitignore = config.scan.respect_gitignore;
-    options.include_tests = config.filters.include_tests;
-    options.include_generated = config.filters.include_generated;
-    options.include_vendor = config.filters.include_vendor;
-    options.exclude_patterns = config.filters.exclude.clone();
-    options.generated_patterns = config.filters.generated_patterns.clone();
-    options.vendor_patterns = config.filters.vendor_patterns.clone();
-    options.classification = ClassificationOptions {
-        count_doc_comments: config.classification.count_doc_comments,
-        count_docstrings_as_comments: config.classification.count_docstrings_as_comments,
-        mixed_lines_as_code: config.classification.mixed_lines_as_code,
-    };
-    options
+    ScanOptions {
+        hidden: config.scan.hidden,
+        respect_gitignore: config.scan.respect_gitignore,
+        include_tests: config.filters.include_tests,
+        include_generated: config.filters.include_generated,
+        include_vendor: config.filters.include_vendor,
+        exclude_patterns: config.filters.exclude.clone(),
+        generated_patterns: config.filters.generated_patterns.clone(),
+        vendor_patterns: config.filters.vendor_patterns.clone(),
+        classification: ClassificationOptions {
+            count_doc_comments: config.classification.count_doc_comments,
+            count_docstrings_as_comments: config.classification.count_docstrings_as_comments,
+            mixed_lines_as_code: config.classification.mixed_lines_as_code,
+        },
+        ..ScanOptions::default()
+    }
 }
 
 pub fn merge_scan_options(config: &ConfigFile, overrides: &ScanOverrides) -> ScanOptions {
@@ -75,7 +76,7 @@ pub fn merge_report_config(config: &ConfigFile, overrides: &ReportOverrides) -> 
     report.top_dirs = normalize_top_limit(report.top_dirs);
 
     if let Some(format) = &overrides.format {
-        report.format = format.clone();
+        report.format = *format;
     }
     if overrides.disable_top_files {
         report.top_files = None;

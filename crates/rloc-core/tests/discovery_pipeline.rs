@@ -11,7 +11,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use rloc_core::{
     AnalysisWarning, Analyzer, BackendFileAnalysis, ClassificationOptions, FileCategory,
     FileMetrics, Language, LanguageBackend, LanguageBackendRegistry, LanguageDescriptor,
-    LineExplanation, ScanOptions, categories,
+    LineBreakdown, LineExplanation, ScanOptions, categories,
 };
 
 #[derive(Debug, Clone)]
@@ -67,13 +67,15 @@ impl LanguageBackend for TestRustBackend {
                 Language::Rust,
                 category,
                 bytes.len() as u64,
-                total_lines,
-                blank_lines,
-                code_lines,
-                0,
-                0,
-                0,
-                0,
+                LineBreakdown {
+                    total: total_lines,
+                    blank: blank_lines,
+                    code: code_lines,
+                    comment: 0,
+                    doc: 0,
+                    mixed: 0,
+                    parse_errors: 0,
+                },
             ),
             line_explanations: vec![LineExplanation {
                 line_number: 1,
@@ -201,24 +203,21 @@ fn unreadable_directory_becomes_warning_instead_of_aborting_scan_and_detect() {
     let analyzer =
         Analyzer::new(LanguageBackendRegistry::new().with_backend(TestRustBackend::healthy()));
 
-    let result = (|| {
-        let scan = analyzer.scan(&root, &ScanOptions::default()).unwrap();
-        assert_eq!(scan.files.len(), 1);
-        assert_eq!(scan.files[0].path, root.join("src/ok.rs"));
-        assert!(scan.warnings.iter().any(|warning| {
-            warning.message.contains("blocked") && warning.message.contains("Permission denied")
-        }));
+    let scan = analyzer.scan(&root, &ScanOptions::default()).unwrap();
+    assert_eq!(scan.files.len(), 1);
+    assert_eq!(scan.files[0].path, root.join("src/ok.rs"));
+    assert!(scan.warnings.iter().any(|warning| {
+        warning.message.contains("blocked") && warning.message.contains("Permission denied")
+    }));
 
-        let detect = analyzer.detect(&root, &ScanOptions::default()).unwrap();
-        assert_eq!(detect.languages, vec![Language::Rust]);
-        assert!(detect.warnings.iter().any(|warning| {
-            warning.message.contains("blocked") && warning.message.contains("Permission denied")
-        }));
-    })();
+    let detect = analyzer.detect(&root, &ScanOptions::default()).unwrap();
+    assert_eq!(detect.languages, vec![Language::Rust]);
+    assert!(detect.warnings.iter().any(|warning| {
+        warning.message.contains("blocked") && warning.message.contains("Permission denied")
+    }));
 
     fs::set_permissions(blocked_dir.as_std_path(), fs::Permissions::from_mode(0o755)).unwrap();
     cleanup_workspace(&root);
-    result
 }
 
 fn temp_workspace(test_name: &str) -> Utf8PathBuf {

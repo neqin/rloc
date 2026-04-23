@@ -131,17 +131,14 @@ mod tests {
         let blocked_dir = root.join("blocked");
         fs::set_permissions(blocked_dir.as_std_path(), fs::Permissions::from_mode(0o000)).unwrap();
 
-        let result = (|| {
-            let discovered = discover_candidate_files(&root, &ScanOptions::default()).unwrap();
-            assert_eq!(discovered.files, vec![root.join("src/lib.rs")]);
-            assert_eq!(discovered.warnings.len(), 1);
-            assert!(discovered.warnings[0].message.contains("blocked"));
-            assert!(discovered.warnings[0].message.contains("Permission denied"));
-        })();
+        let discovered = discover_candidate_files(&root, &ScanOptions::default()).unwrap();
+        assert_eq!(discovered.files, vec![root.join("src/lib.rs")]);
+        assert_eq!(discovered.warnings.len(), 1);
+        assert!(discovered.warnings[0].message.contains("blocked"));
+        assert!(discovered.warnings[0].message.contains("Permission denied"));
 
         fs::set_permissions(blocked_dir.as_std_path(), fs::Permissions::from_mode(0o755)).unwrap();
         cleanup_workspace(&root);
-        result
     }
 
     fn temp_workspace(test_name: &str) -> Utf8PathBuf {

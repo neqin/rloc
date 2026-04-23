@@ -56,7 +56,7 @@ fn css_comment_markers_inside_strings_do_not_start_comments() {
         "css_comment_markers_inside_strings_do_not_start_comments",
         Language::Css,
         "app.css",
-        concat!("body::before { content: \"/* not comment */\"; }\n"),
+        "body::before { content: \"/* not comment */\"; }\n",
     );
 
     assert_eq!(analysis.metrics.code_lines, 1);
@@ -87,7 +87,7 @@ fn classify(
     analysis
 }
 
-fn line_kind<'a>(analysis: &'a BackendFileAnalysis, line_number: u32) -> &'a str {
+fn line_kind(analysis: &BackendFileAnalysis, line_number: u32) -> &str {
     analysis
         .line_explanations
         .iter()

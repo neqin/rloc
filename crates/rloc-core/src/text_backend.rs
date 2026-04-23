@@ -2,7 +2,7 @@ use std::fs;
 
 use crate::{
     BackendFileAnalysis, FileCategory, FileMetrics, Language, LanguageBackend, LanguageDescriptor,
-    LineExplanation, Utf8Path,
+    LineBreakdown, LineExplanation, Utf8Path,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -94,13 +94,14 @@ impl LanguageBackend for PlainTextBackend {
                 self.descriptor.language,
                 category,
                 bytes.len() as u64,
-                total_lines,
-                blank_lines,
-                code_lines,
-                comment_lines,
-                doc_lines,
-                0,
-                0,
+                LineBreakdown {
+                    total: total_lines,
+                    blank: blank_lines,
+                    code: code_lines,
+                    comment: comment_lines,
+                    doc: doc_lines,
+                    ..LineBreakdown::default()
+                },
             ),
             line_explanations: explanations,
             warnings: Vec::new(),

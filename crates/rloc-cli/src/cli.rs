@@ -43,11 +43,11 @@ impl Cli {
             return true;
         };
 
-        match first.to_str() {
-            Some("scan" | "detect" | "explain" | "config" | "help") => false,
-            Some("-h" | "--help" | "-V" | "--version") => false,
-            _ => true,
-        }
+        !matches!(
+            first.to_str(),
+            Some("scan" | "detect" | "explain" | "config" | "help")
+                | Some("-h" | "--help" | "-V" | "--version")
+        )
     }
 }
 

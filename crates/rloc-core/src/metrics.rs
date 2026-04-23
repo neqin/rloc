@@ -22,32 +22,37 @@ pub struct FileMetrics {
     pub is_vendor: bool,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct LineBreakdown {
+    pub total: u32,
+    pub blank: u32,
+    pub code: u32,
+    pub comment: u32,
+    pub doc: u32,
+    pub mixed: u32,
+    pub parse_errors: u32,
+}
+
 impl FileMetrics {
     pub fn from_line_breakdown(
         path: Utf8PathBuf,
         language: Language,
         category: FileCategory,
         bytes: u64,
-        total_lines: u32,
-        blank_lines: u32,
-        code_lines: u32,
-        comment_lines: u32,
-        doc_lines: u32,
-        mixed_lines: u32,
-        parse_errors: u32,
+        lines: LineBreakdown,
     ) -> Self {
         Self {
             path,
             language,
             category,
             bytes,
-            total_lines,
-            blank_lines,
-            code_lines,
-            comment_lines,
-            doc_lines,
-            mixed_lines,
-            parse_errors,
+            total_lines: lines.total,
+            blank_lines: lines.blank,
+            code_lines: lines.code,
+            comment_lines: lines.comment,
+            doc_lines: lines.doc,
+            mixed_lines: lines.mixed,
+            parse_errors: lines.parse_errors,
             is_generated: matches!(category, FileCategory::Generated),
             is_vendor: matches!(category, FileCategory::Vendor),
         }
@@ -66,13 +71,11 @@ impl FileMetrics {
             language,
             category,
             bytes,
-            total_lines,
-            blank_lines,
-            0,
-            0,
-            0,
-            0,
-            0,
+            LineBreakdown {
+                total: total_lines,
+                blank: blank_lines,
+                ..LineBreakdown::default()
+            },
         )
     }
 
@@ -126,4 +129,38 @@ pub struct ScanReport {
     pub files: Vec<FileMetrics>,
     pub by_language: BTreeMap<Language, MetricsSummary>,
     pub warnings: Vec<AnalysisWarning>,
+}
+
+#[cfg(test)]
+mod tests {
+    use camino::Utf8PathBuf;
+
+    use super::{FileMetrics, LineBreakdown};
+    use crate::{FileCategory, Language};
+
+    #[test]
+    fn constructs_metrics_from_named_line_breakdown() {
+        let metrics = FileMetrics::from_line_breakdown(
+            Utf8PathBuf::from("src/lib.rs"),
+            Language::Rust,
+            FileCategory::Source,
+            42,
+            LineBreakdown {
+                total: 5,
+                blank: 1,
+                code: 2,
+                comment: 1,
+                doc: 0,
+                mixed: 1,
+                parse_errors: 0,
+            },
+        );
+
+        assert_eq!(metrics.total_lines, 5);
+        assert_eq!(metrics.blank_lines, 1);
+        assert_eq!(metrics.code_lines, 2);
+        assert_eq!(metrics.comment_lines, 1);
+        assert_eq!(metrics.mixed_lines, 1);
+        assert_eq!(metrics.sloc(), 3);
+    }
 }

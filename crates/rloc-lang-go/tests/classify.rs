@@ -64,7 +64,7 @@ fn classify(test_name: &str, contents: &str) -> BackendFileAnalysis {
     analysis
 }
 
-fn line_kind<'a>(analysis: &'a BackendFileAnalysis, line_number: u32) -> &'a str {
+fn line_kind(analysis: &BackendFileAnalysis, line_number: u32) -> &str {
     analysis
         .line_explanations
         .iter()

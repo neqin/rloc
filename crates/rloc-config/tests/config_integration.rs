@@ -116,7 +116,7 @@ fn cli_overrides_do_not_reset_classification_or_custom_patterns() {
         merged.vendor_patterns,
         vec!["**/external/vendorish/**".to_owned()]
     );
-    assert_eq!(merged.classification.count_doc_comments, false);
-    assert_eq!(merged.classification.count_docstrings_as_comments, false);
-    assert_eq!(merged.classification.mixed_lines_as_code, false);
+    assert!(!merged.classification.count_doc_comments);
+    assert!(!merged.classification.count_docstrings_as_comments);
+    assert!(!merged.classification.mixed_lines_as_code);
 }

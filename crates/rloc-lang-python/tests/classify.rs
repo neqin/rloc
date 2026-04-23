@@ -70,8 +70,10 @@ fn inline_hash_comments_are_mixed_lines() {
 
 #[test]
 fn mixed_lines_can_be_counted_as_comments() {
-    let mut options = ClassificationOptions::default();
-    options.mixed_lines_as_code = false;
+    let options = ClassificationOptions {
+        mixed_lines_as_code: false,
+        ..ClassificationOptions::default()
+    };
 
     let analysis = classify_with_options(
         "mixed_lines_can_be_counted_as_comments",
@@ -91,8 +93,10 @@ fn mixed_lines_can_be_counted_as_comments() {
 
 #[test]
 fn docstrings_can_be_counted_as_code() {
-    let mut options = ClassificationOptions::default();
-    options.count_docstrings_as_comments = false;
+    let options = ClassificationOptions {
+        count_docstrings_as_comments: false,
+        ..ClassificationOptions::default()
+    };
 
     let analysis = classify_with_options(
         "docstrings_can_be_counted_as_code",
@@ -125,7 +129,7 @@ fn classify_with_options(
     analysis
 }
 
-fn line_kind<'a>(analysis: &'a BackendFileAnalysis, line_number: u32) -> &'a str {
+fn line_kind(analysis: &BackendFileAnalysis, line_number: u32) -> &str {
     analysis
         .line_explanations
         .iter()

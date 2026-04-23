@@ -2,7 +2,7 @@ use std::{collections::BTreeSet, fs};
 
 use rloc_core::{
     AnalysisWarning, BackendFileAnalysis, ClassificationOptions, FileCategory, FileMetrics,
-    LineExplanation, Utf8Path,
+    LineBreakdown, LineExplanation, Utf8Path,
 };
 use tree_sitter::Node;
 
@@ -107,13 +107,15 @@ pub fn classify_file(
             rloc_core::Language::Python,
             category,
             bytes.len() as u64,
-            total_lines,
-            blank_lines,
-            code_lines,
-            comment_lines,
-            doc_lines,
-            mixed_lines,
-            0,
+            LineBreakdown {
+                total: total_lines,
+                blank: blank_lines,
+                code: code_lines,
+                comment: comment_lines,
+                doc: doc_lines,
+                mixed: mixed_lines,
+                ..LineBreakdown::default()
+            },
         ),
         line_explanations,
         warnings,

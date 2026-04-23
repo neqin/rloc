@@ -10,7 +10,7 @@ pub mod text_backend;
 pub mod types;
 
 pub use analyze::{Analyzer, DetectReport, ExplainReport};
-pub use metrics::{FileMetrics, MetricsSummary, ScanReport};
+pub use metrics::{FileMetrics, LineBreakdown, MetricsSummary, ScanReport};
 pub use registry::{LanguageBackendRegistry, LanguageDescriptor};
 pub use text_backend::{config_backend, markdown_backend};
 pub use types::{

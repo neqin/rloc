@@ -295,8 +295,8 @@ mod tests {
     use super::{Analyzer, DetectReport, ExplainReport};
     use crate::{
         BackendFileAnalysis, ClassificationOptions, FileCategory, FileMetrics, Language,
-        LanguageBackend, LanguageBackendRegistry, LanguageDescriptor, LineExplanation, ScanOptions,
-        metrics::ScanReport,
+        LanguageBackend, LanguageBackendRegistry, LanguageDescriptor, LineBreakdown,
+        LineExplanation, ScanOptions, metrics::ScanReport,
     };
 
     #[derive(Debug, Clone, Copy)]
@@ -328,13 +328,12 @@ mod tests {
                     Language::Rust,
                     category,
                     bytes.len() as u64,
-                    total_lines,
-                    blank_lines,
-                    code_lines,
-                    0,
-                    0,
-                    0,
-                    0,
+                    LineBreakdown {
+                        total: total_lines,
+                        blank: blank_lines,
+                        code: code_lines,
+                        ..LineBreakdown::default()
+                    },
                 ),
                 line_explanations: vec![LineExplanation {
                     line_number: 1,

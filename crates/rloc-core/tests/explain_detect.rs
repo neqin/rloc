@@ -7,7 +7,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use rloc_core::{
     AnalysisWarning, Analyzer, BackendFileAnalysis, ClassificationOptions, FileCategory,
     FileMetrics, Language, LanguageBackend, LanguageBackendRegistry, LanguageDescriptor,
-    LineExplanation, ScanOptions,
+    LineBreakdown, LineExplanation, ScanOptions,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -33,13 +33,15 @@ impl LanguageBackend for FakeRustBackend {
                 Language::Rust,
                 category,
                 40,
-                2,
-                0,
-                1,
-                0,
-                0,
-                1,
-                0,
+                LineBreakdown {
+                    total: 2,
+                    blank: 0,
+                    code: 1,
+                    comment: 0,
+                    doc: 0,
+                    mixed: 1,
+                    parse_errors: 0,
+                },
             ),
             line_explanations: vec![
                 LineExplanation {
@@ -81,13 +83,15 @@ impl LanguageBackend for FakePythonBackend {
                 Language::Python,
                 category,
                 24,
-                2,
-                0,
-                2,
-                0,
-                0,
-                0,
-                0,
+                LineBreakdown {
+                    total: 2,
+                    blank: 0,
+                    code: 2,
+                    comment: 0,
+                    doc: 0,
+                    mixed: 0,
+                    parse_errors: 0,
+                },
             ),
             line_explanations: vec![LineExplanation {
                 line_number: 1,
