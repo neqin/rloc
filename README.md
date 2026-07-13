@@ -6,15 +6,24 @@ Current workspace support includes:
 - Shell (`sh`, `bash`, `zsh`, `.bashrc`, `.zshrc`, `.envrc`)
 - SQL (`sql`, `psql`)
 - Go
+- C (`c`, `h`)
+- C++ (`cpp`)
+- Objective-C (`m`)
+- Java
+- Swift
+- Zig
 - HTML (`html`, `htm`, `xhtml`, `gohtml`)
 - CSS
+- XML
+- PowerShell (`ps1`)
 - Rust
 - Python
 - JavaScript
 - TypeScript
 - JSX
 - TSX
-- Markdown
+- Markdown (`md`, `mdx`, `markdown`; MDX is counted as Markdown)
+- Text (`txt`)
 - Config files (`toml`, `yaml`, `yml`, `json`, `jsonc`, `lock`, `ini`, `cfg`, `conf`)
 
 Common lockfiles are parsed with the config backend, but categorized as `generated` in reports so they do not dominate normal source/config totals unless you opt in with `--generated`.
@@ -131,6 +140,7 @@ rloc scan . --no-top-files --no-top-dirs
 rloc scan . --list-unsupported
 rloc scan . --languages rust,python,go,html,css
 rloc scan . --languages rs,py,js,ts,tsx,sh,sql
+rloc scan . --languages c,cpp,java,swift,objc,zig,xml,ps1,txt
 rloc --exclude **/target/**,**/dist/** .
 rloc scan . --no-tests --no-vendor
 rloc scan . --generated
@@ -146,7 +156,7 @@ Available options:
 - `--top-dirs [N]` — override the default top-dir limit; defaults to `10` when passed without a value
 - `--no-top-dirs` — hide the top-dirs section entirely
 - `--list-unsupported [N]` — list up to `N` example skipped unsupported files; defaults to `5` when passed without a value
-- `--languages <LIST>` — comma-separated language list; aliases: `rs`, `py`, `js`, `ts`, `md`, `cfg`, `sh`; canonical names include `shell`, `sql`, `go`, `html`, `css`
+- `--languages <LIST>` — comma-separated language list; aliases: `rs`, `py`, `js`, `ts`, `md`, `cfg`, `sh`, `objc`, `m`, `ps1`, `txt`; canonical names include `shell`, `sql`, `go`, `html`, `css`, `c`, `cpp`, `java`, `swift`, `objective-c`, `zig`, `xml`, `powershell`, `text`
 - `--exclude <LIST>` — comma-separated exclude globs; may be passed multiple times and are appended to config excludes
 - `--no-tests`
 - `--generated` — include generated files
