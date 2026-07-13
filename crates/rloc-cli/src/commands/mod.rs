@@ -21,7 +21,16 @@ pub(crate) fn default_registry() -> LanguageBackendRegistry {
         .with_backend(rloc_lang_sql::backend())
         .with_backend(rloc_lang_web::html_backend())
         .with_backend(rloc_lang_web::css_backend())
+        .with_backend(rloc_lang_web::xml_backend())
+        .with_backend(rloc_lang_cfamily::c_backend())
+        .with_backend(rloc_lang_cfamily::cpp_backend())
+        .with_backend(rloc_lang_cfamily::java_backend())
+        .with_backend(rloc_lang_cfamily::swift_backend())
+        .with_backend(rloc_lang_cfamily::objective_c_backend())
+        .with_backend(rloc_lang_cfamily::zig_backend())
+        .with_backend(rloc_lang_powershell::backend())
         .with_backend(rloc_core::markdown_backend())
+        .with_backend(rloc_core::text_backend())
         .with_backend(rloc_core::config_backend())
 }
 
@@ -43,7 +52,7 @@ mod tests {
     fn default_registry_wires_all_workspace_backends() {
         let languages = default_registry().supported_languages();
 
-        assert_eq!(languages.len(), 13);
+        assert_eq!(languages.len(), 22);
         assert!(languages.contains(&Language::Go));
         assert!(languages.contains(&Language::Html));
         assert!(languages.contains(&Language::Css));
@@ -57,5 +66,14 @@ mod tests {
         assert!(languages.contains(&Language::Tsx));
         assert!(languages.contains(&Language::Markdown));
         assert!(languages.contains(&Language::Config));
+        assert!(languages.contains(&Language::C));
+        assert!(languages.contains(&Language::Cpp));
+        assert!(languages.contains(&Language::Java));
+        assert!(languages.contains(&Language::Swift));
+        assert!(languages.contains(&Language::ObjectiveC));
+        assert!(languages.contains(&Language::Zig));
+        assert!(languages.contains(&Language::Xml));
+        assert!(languages.contains(&Language::PowerShell));
+        assert!(languages.contains(&Language::Text));
     }
 }

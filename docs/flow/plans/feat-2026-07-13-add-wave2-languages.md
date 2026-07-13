@@ -411,6 +411,10 @@ Do not modify:
 - 2026-07-13 — T6 complete: added the XML backend on the shared markup scanner with XML-specific explanations and tests; `cargo test -p rloc-lang-web` passes.
 - 2026-07-13 — T7 complete: created the PowerShell crate and string-aware line/block comment scanner; `cargo build -p rloc-lang-powershell` passes.
 - 2026-07-13 — T8 complete: covered PowerShell line/block/mixed cases, comment markers in strings, and backtick-escaped quotes; `cargo test -p rloc-lang-powershell` passes.
+- 2026-07-13 — T9 complete: registered all nine new backends in the CLI and raised the registry expectation to 22 languages; the targeted registry test passes.
+- 2026-07-13 — T10 complete: exposed all new languages through `--languages` with Objective-C, PowerShell, and Text aliases; language-focused CLI tests pass.
+- 2026-07-13 — T11 complete: added end-to-end detection coverage for every Wave 2 extension mapping, including `.h`, `.m`, and `.mdx`; the targeted integration test passes.
+- 2026-07-13 — T12 complete: moved unsupported CLI fixtures from `.txt` to `.dat`; `cargo test --workspace` passes.
 - 2026-07-13 — critique round 1 (`request_changes`): added `parser.rs`
   exhaustive-match fix (compile break), CLI `--languages` selection (T10),
   a positive detect integration test (T11), Zig `/* */` gating, and a

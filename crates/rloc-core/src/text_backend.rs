@@ -136,9 +136,7 @@ mod tests {
         time::{SystemTime, UNIX_EPOCH},
     };
 
-    use crate::{
-        FileCategory, LanguageBackend, config_backend, markdown_backend, text_backend,
-    };
+    use crate::{FileCategory, LanguageBackend, config_backend, markdown_backend, text_backend};
 
     #[test]
     fn markdown_backend_counts_non_blank_lines_as_doc() {

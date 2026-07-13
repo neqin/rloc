@@ -27,3 +27,5 @@ rloc-lang-shell = { path = "../rloc-lang-shell" }
 rloc-lang-sql = { path = "../rloc-lang-sql" }
 rloc-lang-go = { path = "../rloc-lang-go" }
 rloc-lang-web = { path = "../rloc-lang-web" }
+rloc-lang-cfamily = { path = "../rloc-lang-cfamily" }
+rloc-lang-powershell = { path = "../rloc-lang-powershell" }
