@@ -5,8 +5,10 @@
 .idea/
 .vscode/
 .codex
-/.agents/
-/.claude/
+.agents/
+.claude/
+.flow/
+.worktree/
 /docs/*
 !/docs/images/
 !/docs/images/*
