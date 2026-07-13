@@ -42,6 +42,7 @@ pub fn classify_file(
         total_lines += 1;
         let raw_kind = match language {
             Language::Html => classify_html_line(line, &mut html_comment),
+            Language::Xml => classify_html_line(line, &mut html_comment),
             Language::Css => classify_css_line(line, &mut css_state),
             other => return Err(format!("unsupported web language {other}")),
         };
@@ -257,11 +258,15 @@ fn line_reason(language: Language, raw_kind: LineKind, effective_kind: LineKind)
             Language::Css => {
                 "line contains CSS code and comment segments, but classification policy excludes mixed lines from code"
             }
+            Language::Xml => {
+                "line contains XML markup/text and comment segments, but classification policy excludes mixed lines from code"
+            }
             _ => unreachable!(),
         },
         _ => match language {
             Language::Html => html_reason_for_kind(effective_kind),
             Language::Css => css_reason_for_kind(effective_kind),
+            Language::Xml => xml_reason_for_kind(effective_kind),
             _ => unreachable!(),
         },
     }
@@ -284,5 +289,14 @@ fn css_reason_for_kind(kind: LineKind) -> &'static str {
         }
         LineKind::Comment => "line is part of a CSS comment",
         LineKind::Mixed => "line contains CSS code and comment segments",
+    }
+}
+
+fn xml_reason_for_kind(kind: LineKind) -> &'static str {
+    match kind {
+        LineKind::Blank => "line contains only whitespace",
+        LineKind::Code => "line contains XML markup or text content without comments",
+        LineKind::Comment => "line is part of an XML comment",
+        LineKind::Mixed => "line contains XML markup/text and comment segments",
     }
 }

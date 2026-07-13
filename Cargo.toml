@@ -13,6 +13,7 @@ members = [
   "crates/rloc-lang-go",
   "crates/rloc-lang-web",
   "crates/rloc-lang-cfamily",
+  "crates/rloc-lang-powershell",
 ]
 
 [workspace.package]

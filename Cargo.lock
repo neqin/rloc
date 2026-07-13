@@ -446,6 +446,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rloc-lang-powershell"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
+]
+
+[[package]]
 name = "rloc-lang-python"
 version = "0.1.0"
 dependencies = [

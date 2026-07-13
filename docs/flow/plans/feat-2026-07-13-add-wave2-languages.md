@@ -408,6 +408,9 @@ Do not modify:
 - 2026-07-13 — T3 complete: created the shared C-family crate and language-aware scanner with Zig block comments disabled; `cargo build -p rloc-lang-cfamily` passes.
 - 2026-07-13 — T4 complete: added C, C++, Java, Swift, Objective-C, and Zig backend descriptors and constructors; the crate builds.
 - 2026-07-13 — T5 complete: added shared-scanner coverage for all six backends, literals, mixed lines, descriptors, and the Zig regression; `cargo test -p rloc-lang-cfamily` passes.
+- 2026-07-13 — T6 complete: added the XML backend on the shared markup scanner with XML-specific explanations and tests; `cargo test -p rloc-lang-web` passes.
+- 2026-07-13 — T7 complete: created the PowerShell crate and string-aware line/block comment scanner; `cargo build -p rloc-lang-powershell` passes.
+- 2026-07-13 — T8 complete: covered PowerShell line/block/mixed cases, comment markers in strings, and backtick-escaped quotes; `cargo test -p rloc-lang-powershell` passes.
 - 2026-07-13 — critique round 1 (`request_changes`): added `parser.rs`
   exhaustive-match fix (compile break), CLI `--languages` selection (T10),
   a positive detect integration test (T11), Zig `/* */` gating, and a

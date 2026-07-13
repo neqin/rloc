@@ -11,10 +11,15 @@ pub struct HtmlBackend;
 #[derive(Debug, Clone, Copy, Default)]
 pub struct CssBackend;
 
+#[derive(Debug, Clone, Copy, Default)]
+pub struct XmlBackend;
+
 pub const HTML_DESCRIPTOR: LanguageDescriptor =
     LanguageDescriptor::new(Language::Html, "HTML", &["html", "htm", "xhtml", "gohtml"]);
 pub const CSS_DESCRIPTOR: LanguageDescriptor =
     LanguageDescriptor::new(Language::Css, "CSS", &["css"]);
+pub const XML_DESCRIPTOR: LanguageDescriptor =
+    LanguageDescriptor::new(Language::Xml, "XML", &["xml"]);
 
 impl LanguageBackend for HtmlBackend {
     fn descriptor(&self) -> LanguageDescriptor {
@@ -46,6 +51,21 @@ impl LanguageBackend for CssBackend {
     }
 }
 
+impl LanguageBackend for XmlBackend {
+    fn descriptor(&self) -> LanguageDescriptor {
+        XML_DESCRIPTOR
+    }
+
+    fn classify_file(
+        &self,
+        path: &Utf8Path,
+        category: FileCategory,
+        options: &ClassificationOptions,
+    ) -> Result<BackendFileAnalysis, String> {
+        classify::classify_file(path, Language::Xml, category, options)
+    }
+}
+
 pub fn html_descriptor() -> LanguageDescriptor {
     HTML_DESCRIPTOR
 }
@@ -60,4 +80,8 @@ pub fn html_backend() -> HtmlBackend {
 
 pub fn css_backend() -> CssBackend {
     CssBackend
+}
+
+pub fn xml_backend() -> XmlBackend {
+    XmlBackend
 }
