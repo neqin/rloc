@@ -403,6 +403,8 @@ Do not modify:
 ## Progress log
 
 - 2026-07-13 — plan created.
+- 2026-07-13 — T1 complete: added the nine Wave 2 language variants and kept the JS parser matches exhaustive; `cargo check --workspace --all-targets` passes.
+- 2026-07-13 — T2 complete: added Text document counting and expanded Markdown extensions; `cargo test -p rloc-core` passes.
 - 2026-07-13 — critique round 1 (`request_changes`): added `parser.rs`
   exhaustive-match fix (compile break), CLI `--languages` selection (T10),
   a positive detect integration test (T11), Zig `/* */` gating, and a

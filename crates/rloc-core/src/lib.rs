@@ -12,7 +12,7 @@ pub mod types;
 pub use analyze::{Analyzer, DetectReport, ExplainReport};
 pub use metrics::{FileMetrics, LineBreakdown, MetricsSummary, ScanReport};
 pub use registry::{LanguageBackendRegistry, LanguageDescriptor};
-pub use text_backend::{config_backend, markdown_backend};
+pub use text_backend::{config_backend, markdown_backend, text_backend};
 pub use types::{
     AnalysisWarning, BackendFileAnalysis, ClassificationOptions, FileCategory, Language,
     LanguageBackend, LineExplanation, ScanOptions,

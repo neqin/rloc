@@ -19,6 +19,15 @@ pub fn parser_name(language: Language) -> &'static str {
         | Language::Python
         | Language::Markdown
         | Language::Config
+        | Language::C
+        | Language::Cpp
+        | Language::Java
+        | Language::Swift
+        | Language::ObjectiveC
+        | Language::Zig
+        | Language::Xml
+        | Language::PowerShell
+        | Language::Text
         | Language::Unknown => JAVASCRIPT_PARSER,
     }
 }
@@ -53,6 +62,15 @@ pub fn parse(language: Language, source: &str) -> Result<Option<Tree>, String> {
         | Language::Python
         | Language::Markdown
         | Language::Config
+        | Language::C
+        | Language::Cpp
+        | Language::Java
+        | Language::Swift
+        | Language::ObjectiveC
+        | Language::Zig
+        | Language::Xml
+        | Language::PowerShell
+        | Language::Text
         | Language::Unknown => {
             return Err(format!(
                 "unsupported JS-family parser selection for language {language}"
