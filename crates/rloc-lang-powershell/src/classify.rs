@@ -102,6 +102,15 @@ fn classify_line(line: &str, state: &mut ScannerState) -> LineKind {
                     continue;
                 }
 
+                if bytes[index] == b'`' {
+                    has_code = true;
+                    index += 1;
+                    if index < bytes.len() {
+                        index += 1;
+                    }
+                    continue;
+                }
+
                 if starts_with(bytes, index, b"<#") {
                     has_comment = true;
                     *state = ScannerState::BlockComment;

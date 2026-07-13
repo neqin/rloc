@@ -59,6 +59,20 @@ fn backtick_escaped_quote_keeps_hash_inside_the_string() {
 }
 
 #[test]
+fn backtick_escaped_hash_outside_a_string_is_code() {
+    let analysis = classify(
+        "backtick_escaped_hash_outside_a_string_is_code",
+        "Write-Output foo`#bar\n# real comment\n",
+    );
+
+    assert_eq!(analysis.metrics.code_lines, 1);
+    assert_eq!(analysis.metrics.comment_lines, 1);
+    assert_eq!(analysis.metrics.mixed_lines, 0);
+    assert_eq!(line_kind(&analysis, 1), "code");
+    assert_eq!(line_kind(&analysis, 2), "comment");
+}
+
+#[test]
 fn backend_descriptor_reports_ps1() {
     assert_eq!(
         rloc_lang_powershell::backend().descriptor().extensions,

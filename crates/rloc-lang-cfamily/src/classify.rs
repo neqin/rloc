@@ -36,11 +36,10 @@ pub fn classify_file(
     let mut mixed_lines = 0_u32;
     let mut line_explanations = Vec::new();
     let mut state = ScannerState::Code;
-    let supports_block_comments = !matches!(language, Language::Zig);
 
     for (index, line) in contents.lines().enumerate() {
         total_lines += 1;
-        let raw_kind = classify_line(line, &mut state, supports_block_comments);
+        let raw_kind = classify_line(line, &mut state, language);
         let kind = normalize_kind(raw_kind, options);
         match kind {
             LineKind::Blank => blank_lines += 1,
@@ -86,7 +85,9 @@ fn normalize_kind(kind: LineKind, options: &ClassificationOptions) -> LineKind {
     }
 }
 
-fn classify_line(line: &str, state: &mut ScannerState, supports_block_comments: bool) -> LineKind {
+fn classify_line(line: &str, state: &mut ScannerState, language: Language) -> LineKind {
+    clear_line_continuation_escape(state);
+
     if line.trim().is_empty() && matches!(*state, ScannerState::Code) {
         return LineKind::Blank;
     }
@@ -109,7 +110,7 @@ fn classify_line(line: &str, state: &mut ScannerState, supports_block_comments: 
                     break;
                 }
 
-                if supports_block_comments && starts_with(bytes, index, b"/*") {
+                if !matches!(language, Language::Zig) && starts_with(bytes, index, b"/*") {
                     has_comment = true;
                     *state = ScannerState::BlockComment;
                     index += 2;
@@ -125,6 +126,10 @@ fn classify_line(line: &str, state: &mut ScannerState, supports_block_comments: 
 
                 if bytes[index] == b'\'' {
                     has_code = true;
+                    if matches!(language, Language::Cpp) && is_cpp_digit_separator(bytes, index) {
+                        index += 1;
+                        continue;
+                    }
                     *state = ScannerState::Character { escaped: false };
                     index += 1;
                     continue;
@@ -185,6 +190,38 @@ fn classify_line(line: &str, state: &mut ScannerState, supports_block_comments: 
         (false, true) => LineKind::Comment,
         (true, true) => LineKind::Mixed,
     }
+}
+
+fn clear_line_continuation_escape(state: &mut ScannerState) {
+    *state = match *state {
+        ScannerState::String { escaped: true } => ScannerState::String { escaped: false },
+        ScannerState::Character { escaped: true } => ScannerState::Character { escaped: false },
+        other => other,
+    };
+}
+
+fn is_cpp_digit_separator(bytes: &[u8], index: usize) -> bool {
+    let Some(previous) = index.checked_sub(1).and_then(|offset| bytes.get(offset)) else {
+        return false;
+    };
+    let Some(next) = bytes.get(index + 1) else {
+        return false;
+    };
+    if !previous.is_ascii_alphanumeric() || !next.is_ascii_alphanumeric() {
+        return false;
+    }
+
+    let mut token_start = index;
+    while token_start > 0 {
+        let candidate = bytes[token_start - 1];
+        if candidate.is_ascii_alphanumeric() || matches!(candidate, b'.' | b'_') {
+            token_start -= 1;
+        } else {
+            break;
+        }
+    }
+
+    bytes[token_start].is_ascii_digit()
 }
 
 fn carried_code(state: ScannerState) -> bool {

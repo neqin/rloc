@@ -97,6 +97,41 @@ fn zig_does_not_treat_block_markers_as_comments() {
 }
 
 #[test]
+fn cpp_digit_separators_do_not_open_character_literals() {
+    let analysis = classify(
+        "cpp_digit_separators_do_not_open_character_literals",
+        "main.cpp",
+        &cpp_backend(),
+        "auto value = 1'000; // trailing\n// next comment\n",
+    );
+
+    assert_eq!(analysis.metrics.mixed_lines, 1);
+    assert_eq!(analysis.metrics.comment_lines, 1);
+    assert_eq!(line_kind(&analysis, 1), "mixed");
+    assert_eq!(line_kind(&analysis, 2), "comment");
+}
+
+#[test]
+fn continued_c_string_clears_escape_before_the_next_line() {
+    let analysis = classify(
+        "continued_c_string_clears_escape_before_the_next_line",
+        "main.c",
+        &c_backend(),
+        concat!(
+            "const char *value = \"continued\\\n",
+            "\"; // trailing comment\n",
+            "// next comment\n",
+        ),
+    );
+
+    assert_eq!(analysis.metrics.code_lines, 1);
+    assert_eq!(analysis.metrics.mixed_lines, 1);
+    assert_eq!(analysis.metrics.comment_lines, 1);
+    assert_eq!(line_kind(&analysis, 2), "mixed");
+    assert_eq!(line_kind(&analysis, 3), "comment");
+}
+
+#[test]
 fn backend_descriptors_report_expected_extensions() {
     assert_eq!(c_backend().descriptor().extensions, &["c", "h"]);
     assert_eq!(cpp_backend().descriptor().extensions, &["cpp"]);

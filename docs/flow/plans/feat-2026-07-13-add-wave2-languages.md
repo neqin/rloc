@@ -416,6 +416,7 @@ Do not modify:
 - 2026-07-13 — T11 complete: added end-to-end detection coverage for every Wave 2 extension mapping, including `.h`, `.m`, and `.mdx`; the targeted integration test passes.
 - 2026-07-13 — T12 complete: moved unsupported CLI fixtures from `.txt` to `.dat`; `cargo test --workspace` passes.
 - 2026-07-13 — T13 complete: documented Wave 2 language support, MDX handling, and selector aliases; README check and workspace clippy pass.
+- 2026-07-13 — final review requested changes: fixed C++ digit separators, C-family line-continuation escape state, and PowerShell backtick-escaped hashes; added focused regressions.
 - 2026-07-13 — critique round 1 (`request_changes`): added `parser.rs`
   exhaustive-match fix (compile break), CLI `--languages` selection (T10),
   a positive detect integration test (T11), Zig `/* */` gating, and a
