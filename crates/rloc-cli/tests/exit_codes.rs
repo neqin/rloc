@@ -28,8 +28,8 @@ fn missing_input_path_returns_exit_code_3() {
 #[test]
 fn unsupported_explain_target_returns_exit_code_4() {
     let root = temp_dir("unsupported_explain_target_returns_exit_code_4");
-    let file = root.join("notes.txt");
-    write_file(&root, "notes.txt", "plain text\n");
+    let file = root.join("notes.dat");
+    write_file(&root, "notes.dat", "unsupported data\n");
 
     let status = Command::new(bin_path())
         .args(["explain", file.as_str()])

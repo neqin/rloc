@@ -384,8 +384,10 @@ dependencies = [
  "clap",
  "rloc-config",
  "rloc-core",
+ "rloc-lang-cfamily",
  "rloc-lang-go",
  "rloc-lang-js",
+ "rloc-lang-powershell",
  "rloc-lang-python",
  "rloc-lang-rust",
  "rloc-lang-shell",
@@ -422,6 +424,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rloc-lang-cfamily"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
+]
+
+[[package]]
 name = "rloc-lang-go"
 version = "0.1.0"
 dependencies = [
@@ -436,6 +445,13 @@ dependencies = [
  "tree-sitter",
  "tree-sitter-javascript",
  "tree-sitter-typescript",
+]
+
+[[package]]
+name = "rloc-lang-powershell"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
 ]
 
 [[package]]

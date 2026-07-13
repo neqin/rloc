@@ -20,6 +20,15 @@ pub enum Language {
     Tsx,
     Markdown,
     Config,
+    C,
+    Cpp,
+    Java,
+    Swift,
+    ObjectiveC,
+    Zig,
+    Xml,
+    PowerShell,
+    Text,
     Unknown,
 }
 
@@ -39,6 +48,15 @@ impl Language {
             Self::Tsx => "tsx",
             Self::Markdown => "markdown",
             Self::Config => "config",
+            Self::C => "c",
+            Self::Cpp => "cpp",
+            Self::Java => "java",
+            Self::Swift => "swift",
+            Self::ObjectiveC => "objective-c",
+            Self::Zig => "zig",
+            Self::Xml => "xml",
+            Self::PowerShell => "powershell",
+            Self::Text => "text",
             Self::Unknown => "unknown",
         }
     }

@@ -10,7 +10,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 fn detect_lists_unsupported_paths_when_requested() {
     let root = temp_workspace("detect_lists_unsupported_paths_when_requested");
     write_file(&root, "src/lib.rs", "fn main() {}\n");
-    write_file(&root, "README.txt", "ignored\n");
+    write_file(&root, "README.dat", "ignored\n");
     write_file(&root, "notes.log", "ignored\n");
 
     let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
@@ -22,7 +22,7 @@ fn detect_lists_unsupported_paths_when_requested() {
     assert!(output.status.success());
     assert!(stdout.contains("warnings:"));
     assert!(stdout.contains("2 files with unsupported extensions were skipped"));
-    assert!(stdout.contains("README.txt: unsupported extension skipped"));
+    assert!(stdout.contains("README.dat: unsupported extension skipped"));
     assert!(stdout.contains("notes.log: unsupported extension skipped"));
 
     cleanup_workspace(&root);
@@ -76,6 +76,55 @@ fn detect_lists_wave1_languages_in_human_output() {
     }
     assert!(stdout.contains("presets:"));
     assert!(stdout.contains("- go"));
+
+    cleanup_workspace(&root);
+}
+
+#[test]
+fn detect_lists_wave2_languages_in_human_output() {
+    let root = temp_workspace("detect_lists_wave2_languages_in_human_output");
+    for (path, contents) in [
+        ("main.c", "int main(void) { return 0; }\n"),
+        ("lib.cpp", "int value = 1;\n"),
+        ("api.h", "int api(void);\n"),
+        ("App.java", "class App {}\n"),
+        ("View.swift", "struct View {}\n"),
+        ("Cell.m", "@implementation Cell\n@end\n"),
+        ("build.zig", "const std = @import(\"std\");\n"),
+        ("config.xml", "<config />\n"),
+        ("deploy.ps1", "Write-Output 'deploy'\n"),
+        ("notes.txt", "Release notes\n"),
+        ("page.mdx", "# Page\n"),
+    ] {
+        write_file(&root, path, contents);
+    }
+
+    let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
+        .args(["detect", root.as_str()])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert!(output.status.success());
+    assert!(stdout.contains("languages:"));
+    for language in [
+        "- c",
+        "- cpp",
+        "- java",
+        "- swift",
+        "- objective-c",
+        "- zig",
+        "- xml",
+        "- powershell",
+        "- text",
+        "- markdown",
+    ] {
+        assert!(
+            stdout.contains(language),
+            "missing {language} in:\n{stdout}"
+        );
+    }
+    assert!(!stdout.contains("unsupported extensions"));
 
     cleanup_workspace(&root);
 }

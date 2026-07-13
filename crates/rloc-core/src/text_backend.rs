@@ -8,6 +8,7 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 enum TextMode {
     Markdown,
+    Text,
     Config,
 }
 
@@ -19,8 +20,19 @@ pub struct PlainTextBackend {
 
 pub fn markdown_backend() -> PlainTextBackend {
     PlainTextBackend {
-        descriptor: LanguageDescriptor::new(Language::Markdown, "Markdown", &["md"]),
+        descriptor: LanguageDescriptor::new(
+            Language::Markdown,
+            "Markdown",
+            &["md", "mdx", "markdown"],
+        ),
         mode: TextMode::Markdown,
+    }
+}
+
+pub fn text_backend() -> PlainTextBackend {
+    PlainTextBackend {
+        descriptor: LanguageDescriptor::new(Language::Text, "Text", &["txt"]),
+        mode: TextMode::Text,
     }
 }
 
@@ -66,6 +78,10 @@ impl LanguageBackend for PlainTextBackend {
                     TextMode::Markdown => {
                         doc_lines += 1;
                         ("doc", "markdown content counted as documentation")
+                    }
+                    TextMode::Text => {
+                        doc_lines += 1;
+                        ("doc", "text content counted as documentation")
                     }
                     TextMode::Config if is_config_comment(trimmed) => {
                         comment_lines += 1;
@@ -120,7 +136,7 @@ mod tests {
         time::{SystemTime, UNIX_EPOCH},
     };
 
-    use crate::{FileCategory, LanguageBackend, config_backend, markdown_backend};
+    use crate::{FileCategory, LanguageBackend, config_backend, markdown_backend, text_backend};
 
     #[test]
     fn markdown_backend_counts_non_blank_lines_as_doc() {
@@ -166,6 +182,40 @@ mod tests {
         assert_eq!(analysis.metrics.doc_lines, 0);
 
         cleanup_workspace(&root);
+    }
+
+    #[test]
+    fn text_backend_counts_non_blank_lines_as_doc() {
+        let root = temp_workspace("text_backend_counts_non_blank_lines_as_doc");
+        let path = root.join("notes.txt");
+        fs::write(path.as_std_path(), "First line\n\nSecond line\n").unwrap();
+
+        let analysis = text_backend()
+            .classify_file(
+                &path,
+                FileCategory::Docs,
+                &crate::ClassificationOptions::default(),
+            )
+            .unwrap();
+
+        assert_eq!(analysis.metrics.doc_lines, 2);
+        assert_eq!(analysis.metrics.blank_lines, 1);
+        assert_eq!(analysis.metrics.code_lines, 0);
+
+        cleanup_workspace(&root);
+    }
+
+    #[test]
+    fn markdown_descriptor_lists_all_extensions() {
+        assert_eq!(
+            markdown_backend().descriptor().extensions,
+            &["md", "mdx", "markdown"]
+        );
+    }
+
+    #[test]
+    fn text_descriptor_lists_txt_extension() {
+        assert_eq!(text_backend().descriptor().extensions, &["txt"]);
     }
 
     fn temp_workspace(test_name: &str) -> camino::Utf8PathBuf {

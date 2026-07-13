@@ -106,7 +106,7 @@ pub struct ScanArgs {
     )]
     pub list_unsupported: Option<usize>,
 
-    /// Comma-separated language list; aliases: rs, py, js, ts, md, cfg, sh; names: sql, go, html, css.
+    /// Comma-separated language list; aliases: rs, py, js, ts, md, cfg, sh, objc, m, ps1, txt; names also include sql, go, html, css, c, cpp, java, swift, zig, xml.
     #[arg(long = "languages", value_delimiter = ',')]
     pub languages: Vec<LanguageArg>,
 
@@ -209,6 +209,18 @@ pub enum LanguageArg {
     Config,
     Jsx,
     Tsx,
+    C,
+    Cpp,
+    Java,
+    Swift,
+    #[value(alias("objc"), alias("m"))]
+    ObjectiveC,
+    Zig,
+    Xml,
+    #[value(alias("ps1"))]
+    Powershell,
+    #[value(alias("txt"))]
+    Text,
 }
 
 impl From<LanguageArg> for rloc_core::Language {
@@ -227,6 +239,15 @@ impl From<LanguageArg> for rloc_core::Language {
             LanguageArg::Config => Self::Config,
             LanguageArg::Jsx => Self::Jsx,
             LanguageArg::Tsx => Self::Tsx,
+            LanguageArg::C => Self::C,
+            LanguageArg::Cpp => Self::Cpp,
+            LanguageArg::Java => Self::Java,
+            LanguageArg::Swift => Self::Swift,
+            LanguageArg::ObjectiveC => Self::ObjectiveC,
+            LanguageArg::Zig => Self::Zig,
+            LanguageArg::Xml => Self::Xml,
+            LanguageArg::Powershell => Self::PowerShell,
+            LanguageArg::Text => Self::Text,
         }
     }
 }
@@ -292,13 +313,13 @@ mod tests {
             "scan",
             ".",
             "--languages",
-            "js,ts,md,cfg,tsx,sh,sql,go,html,css",
+            "js,ts,md,cfg,tsx,sh,sql,go,html,css,c,cpp,java,swift,objc,zig,xml,ps1,txt",
         ])
         .unwrap();
 
         match cli.command {
             Command::Scan(args) => {
-                assert_eq!(args.languages.len(), 10);
+                assert_eq!(args.languages.len(), 19);
                 assert!(matches!(args.languages[0], super::LanguageArg::Javascript));
                 assert!(matches!(args.languages[1], super::LanguageArg::Typescript));
                 assert!(matches!(args.languages[2], super::LanguageArg::Markdown));
@@ -309,6 +330,15 @@ mod tests {
                 assert!(matches!(args.languages[7], super::LanguageArg::Go));
                 assert!(matches!(args.languages[8], super::LanguageArg::Html));
                 assert!(matches!(args.languages[9], super::LanguageArg::Css));
+                assert!(matches!(args.languages[10], super::LanguageArg::C));
+                assert!(matches!(args.languages[11], super::LanguageArg::Cpp));
+                assert!(matches!(args.languages[12], super::LanguageArg::Java));
+                assert!(matches!(args.languages[13], super::LanguageArg::Swift));
+                assert!(matches!(args.languages[14], super::LanguageArg::ObjectiveC));
+                assert!(matches!(args.languages[15], super::LanguageArg::Zig));
+                assert!(matches!(args.languages[16], super::LanguageArg::Xml));
+                assert!(matches!(args.languages[17], super::LanguageArg::Powershell));
+                assert!(matches!(args.languages[18], super::LanguageArg::Text));
             }
             other => panic!("expected scan command, got {other:?}"),
         }

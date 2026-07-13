@@ -65,6 +65,22 @@ fn css_comment_markers_inside_strings_do_not_start_comments() {
     assert_eq!(line_kind(&analysis, 1), "code");
 }
 
+#[test]
+fn xml_comments_are_comment_lines_and_markup_is_code() {
+    let analysis = classify(
+        "xml_comments_are_comment_lines_and_markup_is_code",
+        Language::Xml,
+        "config.xml",
+        concat!("<root>value</root>\n", "<!-- note -->\n"),
+    );
+
+    assert_eq!(analysis.metrics.language, Language::Xml);
+    assert_eq!(analysis.metrics.code_lines, 1);
+    assert_eq!(analysis.metrics.comment_lines, 1);
+    assert_eq!(line_kind(&analysis, 1), "code");
+    assert_eq!(line_kind(&analysis, 2), "comment");
+}
+
 fn classify(
     test_name: &str,
     language: Language,

@@ -529,7 +529,7 @@ fn scan_wave1_languages_no_longer_show_as_unsupported() {
 fn scan_lists_unsupported_paths_when_requested() {
     let root = temp_workspace("scan_lists_unsupported_paths_when_requested");
     write_file(&root, "src/lib.rs", "fn main() {}\n");
-    write_file(&root, "README.txt", "ignored\n");
+    write_file(&root, "README.dat", "ignored\n");
     write_file(&root, "notes.log", "ignored\n");
 
     let output = Command::new(env!("CARGO_BIN_EXE_rloc"))
@@ -541,7 +541,7 @@ fn scan_lists_unsupported_paths_when_requested() {
     assert!(output.status.success());
     assert!(stdout.contains("Warnings"));
     assert!(stdout.contains("2 files with unsupported extensions were skipped"));
-    assert!(stdout.contains("README.txt: unsupported extension skipped"));
+    assert!(stdout.contains("README.dat: unsupported extension skipped"));
     assert!(stdout.contains("notes.log: unsupported extension skipped"));
 
     cleanup_workspace(&root);
