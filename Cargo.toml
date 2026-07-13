@@ -12,6 +12,7 @@ members = [
   "crates/rloc-lang-sql",
   "crates/rloc-lang-go",
   "crates/rloc-lang-web",
+  "crates/rloc-lang-cfamily",
 ]
 
 [workspace.package]

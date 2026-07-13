@@ -422,6 +422,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rloc-lang-cfamily"
+version = "0.1.0"
+dependencies = [
+ "rloc-core",
+]
+
+[[package]]
 name = "rloc-lang-go"
 version = "0.1.0"
 dependencies = [
