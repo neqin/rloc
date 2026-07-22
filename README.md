@@ -134,6 +134,8 @@ rloc .
 rloc --format json .
 rloc scan .
 rloc scan . --format json
+rloc scan . --format json --section summary,groups --group-by language
+rloc scan . --format json --section top-files --top-files 20
 rloc scan . --group-by language --group-by category
 rloc scan . --top-files 10 --top-dirs 5
 rloc scan . --no-top-files --no-top-dirs
@@ -150,6 +152,7 @@ rloc scan . --config .rloc.toml
 Available options:
 
 - `--format <table|json>`
+- `--section <meta|summary|groups|top-files|top-dirs|warnings>` — include only selected top-level JSON sections; repeat the flag or pass a comma-separated list
 - `--group-by <language|category|dir|file>`
 - `--top-files [N]` — override the default top-file limit; defaults to `10` when passed without a value
 - `--no-top-files` — hide the top-files section entirely
@@ -275,6 +278,8 @@ top_dirs = 10
 `scan` supports:
 - `table`
 - `json`
+
+Without `--section`, JSON output keeps the full report schema. With `--section`, only the selected top-level fields are emitted.
 
 Table output also includes a compact `Category totals` block after `Summary`, so categories such as `source`, `test`, `docs`, and `config` are visible without adding `--group-by category`.
 

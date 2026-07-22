@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use rloc_core::{AnalysisWarning, MetricsSummary, ScanReport};
 
-use crate::{GroupSummary, ScanRenderOptions, summary, top};
+use crate::{GroupSummary, ScanJsonSection, ScanRenderOptions, summary, top};
 
 #[derive(Debug, Serialize)]
 struct JsonMeta<'a> {
@@ -17,30 +17,29 @@ struct JsonMeta<'a> {
 
 #[derive(Debug, Serialize)]
 struct JsonScanReport<'a> {
-    meta: JsonMeta<'a>,
-    summary: &'a MetricsSummary,
-    groups: Vec<GroupSummary>,
-    top_files: Vec<crate::TopFileEntry>,
-    top_dirs: Vec<GroupSummary>,
-    warnings: &'a [AnalysisWarning],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    meta: Option<JsonMeta<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    summary: Option<&'a MetricsSummary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    groups: Option<Vec<GroupSummary>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    top_files: Option<Vec<crate::TopFileEntry>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    top_dirs: Option<Vec<GroupSummary>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    warnings: Option<&'a [AnalysisWarning]>,
 }
 
 pub fn render(
     report: &ScanReport,
     options: &ScanRenderOptions,
+    sections: &[ScanJsonSection],
 ) -> Result<String, serde_json::Error> {
-    let groups = summary::groups(report, &options.group_by);
-    let top_files = options
-        .top_files
-        .map(|limit| top::top_files(report, limit))
-        .unwrap_or_default();
-    let top_dirs = options
-        .top_dirs
-        .map(|limit| top::top_dirs(report, limit))
-        .unwrap_or_default();
+    let includes = |section| sections.is_empty() || sections.contains(&section);
 
     let payload = JsonScanReport {
-        meta: JsonMeta {
+        meta: includes(ScanJsonSection::Meta).then(|| JsonMeta {
             version: env!("CARGO_PKG_VERSION"),
             path: options.path.as_str(),
             format: options.format.as_str(),
@@ -48,12 +47,23 @@ pub fn render(
             generated_included: options.include_generated,
             vendor_included: options.include_vendor,
             tests_included: options.include_tests,
-        },
-        summary: &report.summary,
-        groups,
-        top_files,
-        top_dirs,
-        warnings: &report.warnings,
+        }),
+        summary: includes(ScanJsonSection::Summary).then_some(&report.summary),
+        groups: includes(ScanJsonSection::Groups)
+            .then(|| summary::groups(report, &options.group_by)),
+        top_files: includes(ScanJsonSection::TopFiles).then(|| {
+            options
+                .top_files
+                .map(|limit| top::top_files(report, limit))
+                .unwrap_or_default()
+        }),
+        top_dirs: includes(ScanJsonSection::TopDirs).then(|| {
+            options
+                .top_dirs
+                .map(|limit| top::top_dirs(report, limit))
+                .unwrap_or_default()
+        }),
+        warnings: includes(ScanJsonSection::Warnings).then_some(report.warnings.as_slice()),
     };
 
     serde_json::to_string_pretty(&payload)

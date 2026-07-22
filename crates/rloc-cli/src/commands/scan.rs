@@ -2,9 +2,9 @@ use std::fs;
 
 use anyhow::{Context, anyhow};
 use rloc_config::{ReportFormat, ReportGroupBy};
-use rloc_report::{ScanGroupBy, ScanRenderOptions};
+use rloc_report::{ScanGroupBy, ScanJsonSection, ScanRenderOptions};
 
-use crate::cli::{GroupBy, OutputFormat, ScanArgs};
+use crate::cli::{GroupBy, JsonSection, OutputFormat, ScanArgs};
 use crate::error::AppError;
 
 pub fn run(args: ScanArgs) -> Result<(), AppError> {
@@ -20,6 +20,15 @@ pub fn run(args: ScanArgs) -> Result<(), AppError> {
         })
         .map_err(AppError::invalid_input)?;
 
+    let report_format = args
+        .format
+        .unwrap_or_else(|| format_from_config(config.report.format));
+    if !args.sections.is_empty() && matches!(report_format, OutputFormat::Table) {
+        return Err(AppError::invalid_input(anyhow!(
+            "--section requires JSON output; pass --format json"
+        )));
+    }
+
     let options = rloc_core::ScanOptions {
         unsupported_sample_limit: args.list_unsupported,
         ..rloc_config::merge_scan_options(&config, &scan_overrides(&args))
@@ -28,9 +37,6 @@ pub fn run(args: ScanArgs) -> Result<(), AppError> {
         .scan(&args.path, &options)
         .map_err(|error| AppError::runtime(anyhow!(error)))?;
 
-    let report_format = args
-        .format
-        .unwrap_or_else(|| format_from_config(config.report.format));
     let report_defaults = rloc_config::merge_report_config(&config, &report_overrides(&args));
     let render_options = render_options(&args, &options, &report_defaults, report_format);
 
@@ -44,8 +50,17 @@ pub fn run(args: ScanArgs) -> Result<(), AppError> {
         OutputFormat::Json => {
             println!(
                 "{}",
-                rloc_report::render_json_with_options(&report, &render_options)
-                    .map_err(AppError::runtime)?
+                rloc_report::render_json_sections_with_options(
+                    &report,
+                    &render_options,
+                    &args
+                        .sections
+                        .iter()
+                        .copied()
+                        .map(json_section)
+                        .collect::<Vec<_>>(),
+                )
+                .map_err(AppError::runtime)?
             );
         }
     }
@@ -120,6 +135,17 @@ fn report_group_by(value: GroupBy) -> ReportGroupBy {
         GroupBy::Category => ReportGroupBy::Category,
         GroupBy::Dir => ReportGroupBy::Dir,
         GroupBy::File => ReportGroupBy::File,
+    }
+}
+
+fn json_section(value: JsonSection) -> ScanJsonSection {
+    match value {
+        JsonSection::Meta => ScanJsonSection::Meta,
+        JsonSection::Summary => ScanJsonSection::Summary,
+        JsonSection::Groups => ScanJsonSection::Groups,
+        JsonSection::TopFiles => ScanJsonSection::TopFiles,
+        JsonSection::TopDirs => ScanJsonSection::TopDirs,
+        JsonSection::Warnings => ScanJsonSection::Warnings,
     }
 }
 
@@ -325,6 +351,7 @@ mod tests {
         ScanArgs {
             path: Utf8PathBuf::from("."),
             format: None,
+            sections: Vec::new(),
             group_by: Vec::new(),
             top_files: None,
             top_dirs: None,

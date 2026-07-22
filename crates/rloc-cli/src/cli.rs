@@ -71,6 +71,10 @@ pub struct ScanArgs {
     #[arg(long, value_enum)]
     pub format: Option<OutputFormat>,
 
+    /// Include only these top-level sections in JSON output; repeat or comma-separate values.
+    #[arg(long = "section", value_enum, value_delimiter = ',')]
+    pub sections: Vec<JsonSection>,
+
     #[arg(long = "group-by", value_enum)]
     pub group_by: Vec<GroupBy>,
 
@@ -177,6 +181,18 @@ pub enum ConfigCommand {
 pub enum OutputFormat {
     Table,
     Json,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum JsonSection {
+    Meta,
+    Summary,
+    Groups,
+    #[value(alias("top_files"))]
+    TopFiles,
+    #[value(alias("top_dirs"))]
+    TopDirs,
+    Warnings,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]

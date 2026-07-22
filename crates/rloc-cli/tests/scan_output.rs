@@ -8,6 +8,88 @@ use camino::{Utf8Path, Utf8PathBuf};
 use serde_json::Value;
 
 #[test]
+fn scan_json_can_select_summary_and_groups_sections() {
+    let root = temp_workspace("scan_json_can_select_summary_and_groups_sections");
+    write_file(&root, "src/lib.rs", "fn main() {}\n");
+    write_file(&root, "app.py", "print('ok')\n");
+
+    let output = run_scan(
+        &root,
+        &[
+            "--format",
+            "json",
+            "--section",
+            "summary,groups",
+            "--group-by",
+            "language",
+        ],
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let object = json.as_object().unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(object.len(), 2);
+    assert!(object.contains_key("summary"));
+    assert!(object.contains_key("groups"));
+    assert!(
+        json["groups"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|group| group["group_by"] == "language")
+    );
+
+    cleanup_workspace(&root);
+}
+
+#[test]
+fn scan_json_can_select_only_top_files() {
+    let root = temp_workspace("scan_json_can_select_only_top_files");
+    write_file(&root, "src/lib.rs", "fn main() {}\n");
+    write_file(&root, "src/large.rs", "fn one() {}\nfn two() {}\n");
+
+    let output = run_scan(
+        &root,
+        &[
+            "--format",
+            "json",
+            "--section",
+            "top-files",
+            "--top-files",
+            "1",
+        ],
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let object = json.as_object().unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(object.len(), 1);
+    assert_eq!(json["top_files"].as_array().unwrap().len(), 1);
+    assert!(
+        json["top_files"][0]["path"]
+            .as_str()
+            .unwrap()
+            .ends_with("/src/large.rs")
+    );
+
+    cleanup_workspace(&root);
+}
+
+#[test]
+fn scan_section_rejects_table_output() {
+    let root = temp_workspace("scan_section_rejects_table_output");
+    write_file(&root, "src/lib.rs", "fn main() {}\n");
+
+    let output = run_scan(&root, &["--section", "summary"]);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(stderr.contains("--section requires JSON output"));
+
+    cleanup_workspace(&root);
+}
+
+#[test]
 fn scan_uses_report_defaults_from_config_when_flags_are_absent() {
     let root = temp_workspace("scan_uses_report_defaults_from_config_when_flags_are_absent");
     write_file(&root, "src/lib.rs", "fn main() {}\n");

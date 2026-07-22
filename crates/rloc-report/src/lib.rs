@@ -20,6 +20,16 @@ pub enum ScanGroupBy {
     File,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ScanJsonSection {
+    Meta,
+    Summary,
+    Groups,
+    TopFiles,
+    TopDirs,
+    Warnings,
+}
+
 impl ScanGroupBy {
     pub const fn as_str(self) -> &'static str {
         match self {
@@ -158,7 +168,15 @@ pub fn render_json_with_options(
     report: &ScanReport,
     options: &ScanRenderOptions,
 ) -> Result<String, serde_json::Error> {
-    json::render(report, options)
+    json::render(report, options, &[])
+}
+
+pub fn render_json_sections_with_options(
+    report: &ScanReport,
+    options: &ScanRenderOptions,
+    sections: &[ScanJsonSection],
+) -> Result<String, serde_json::Error> {
+    json::render(report, options, sections)
 }
 
 pub fn render_detect_table(report: &DetectReport) -> String {

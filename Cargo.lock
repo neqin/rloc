@@ -377,7 +377,7 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "rloc-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "camino",
@@ -402,7 +402,7 @@ dependencies = [
 
 [[package]]
 name = "rloc-config"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "camino",
  "rloc-core",
@@ -413,7 +413,7 @@ dependencies = [
 
 [[package]]
 name = "rloc-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "camino",
  "globset",
@@ -425,21 +425,21 @@ dependencies = [
 
 [[package]]
 name = "rloc-lang-cfamily"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
 ]
 
 [[package]]
 name = "rloc-lang-go"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
 ]
 
 [[package]]
 name = "rloc-lang-js"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
  "tree-sitter",
@@ -449,14 +449,14 @@ dependencies = [
 
 [[package]]
 name = "rloc-lang-powershell"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
 ]
 
 [[package]]
 name = "rloc-lang-python"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
  "tree-sitter",
@@ -465,7 +465,7 @@ dependencies = [
 
 [[package]]
 name = "rloc-lang-rust"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
  "tree-sitter",
@@ -474,28 +474,28 @@ dependencies = [
 
 [[package]]
 name = "rloc-lang-shell"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
 ]
 
 [[package]]
 name = "rloc-lang-sql"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
 ]
 
 [[package]]
 name = "rloc-lang-web"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
 ]
 
 [[package]]
 name = "rloc-report"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rloc-core",
  "serde",
